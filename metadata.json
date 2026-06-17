@@ -1,0 +1,6 @@
+{
+  "name": "Grégoire BATCHO Portfolio",
+  "description": "Premium full-stack developer portfolio for Grégoire BATCHO, featuring a modern dark UI, smooth transitions, MongoDB Atlas integration, and a secure admin panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
