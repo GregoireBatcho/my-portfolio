@@ -68,10 +68,10 @@ export const ProfileSchema = new mongoose.Schema({
   aboutBioEn: { type: String, default: 'Passionate about the synergy between neat code and meticulous user interface design, I build stable, efficient systems. My methodology takes inspiration from Scandinavian simplicity and industrial execution: every line of code must deliver efficiency, and every pixel must serve a purpose.' },
   aboutBioFr: { type: String, default: 'Passionné par la synergie entre un code élégant et un design minutieux, je conçois des systèmes stables et réactifs. Mon approche s’inspire de la simplicité scandinave et de l’efficacité industrielle : chaque ligne de code doit servir la performance, et chaque pixel doit guider l’utilisateur.' },
   avatarUrl: { type: String, default: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80' },
-  socialGithub: { type: String, default: 'https://github.com/grg-batcho' },
-  socialLinkedin: { type: String, default: 'https://linkedin.com/in/grg-batcho' },
+  socialGithub: { type: String, default: 'https://github.com/DOUTCHO' },
+  socialLinkedin: { type: String, default: 'https://linkedin.com/in/gregoirebatcho' },
   socialTwitter: { type: String, default: '' },
-  phone: { type: String, default: '+33 6 00 00 00 00' },
+  phone: { type: String, default: '+225 07 07 39 98 30' },
   cvName: { type: String, default: 'CV_Gregoire_Batcho.pdf' },
   cvData: { type: String, default: '' } // Base64 document content
 }, {

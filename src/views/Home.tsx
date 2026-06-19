@@ -22,7 +22,7 @@ export default function Home() {
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute('content', lang === 'fr' 
-        ? 'Dossier et portfolio de Grégoire BATCHO, ingénieur d’applications web robuste. Spécialités: React, TypeScript, Node.js, Express, et MongoDB.'
+        ? 'Dossier et portfolio de Grégoire BATCHO, ingénieur d’applications web robuste. Spécialités: React, TypeScript, Node.js et MongoDB.'
         : 'Professional developer portfolio of Grégoire BATCHO. High-performance software engineering covering React, TypeScript, Node.js, security, and Databases.'
       );
     }

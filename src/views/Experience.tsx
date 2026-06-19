@@ -54,7 +54,7 @@ export default function Experience() {
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute('content', lang === 'fr'
-        ? 'Curriculum vitæ et jalons professionnels de Grégoire BATCHO. Apprentissages en ingénierie, gestion d’API REST, et développement d’applications web.'
+        ? 'Curriculum vitæ et jalons professionnels de Grégoire BATCHO. Apprentissages en ingénierie logiciel, gestion d’API REST, et développement d’applications web.'
         : 'Curriculum Vitae and professional milestones of Grégoire BATCHO. Core work, apprentice scopes, database schemas, and micro-frontend layers.'
       );
     }

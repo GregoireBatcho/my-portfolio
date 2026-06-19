@@ -224,10 +224,10 @@ let memoryProfile = {
   aboutBioEn: 'Passionate about the synergy between neat code and meticulous user interface design, I build stable, efficient systems. My methodology takes inspiration from Scandinavian simplicity and industrial execution: every line of code must deliver efficiency, and every pixel must serve a purpose.',
   aboutBioFr: 'Passionné par la synergie entre un code élégant et un design minutieux, je conçois des systèmes stables et réactifs. Mon approche s’inspire de la simplicité scandinave et de l’efficacité industrielle : chaque ligne de code doit servir la performance, et chaque pixel doit guider l’utilisateur.',
   avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
-  socialGithub: 'https://github.com/grg-batcho',
-  socialLinkedin: 'https://linkedin.com/in/grg-batcho',
+  socialGithub: 'https://github.com/DOUTCHO',
+  socialLinkedin: 'https://linkedin.com/in/gregoirebatcho',
   socialTwitter: '',
-  phone: '+33 6 00 00 00 00',
+  phone: '+225 07 07 39 98 30',
   cvName: 'CV_Gregoire_Batcho.pdf',
   cvData: '' // stored Base64
 };

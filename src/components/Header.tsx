@@ -98,17 +98,6 @@ export default function Header() {
               {lang === 'fr' ? 'EN' : 'FR'}
             </button>
 
-            {/* Admin trigger button with gold shine */}
-            <Link
-              to="/admin"
-              className={`p-2 rounded-xl border transition-all duration-300 decoration-transparent flex items-center justify-center ${
-                location.pathname.startsWith('/admin')
-                  ? 'bg-copper-500/10 border-copper-500 text-copper-400'
-                  : 'bg-zinc-950/40 border-white/5 text-zinc-400 hover:text-white hover:border-copper-500/30'
-              }`}
-            >
-              <Terminal className="w-4 h-4" />
-            </Link>
           </div>
 
           {/* Mobile responsive triggers */}
@@ -191,14 +180,6 @@ export default function Header() {
                   {lang === 'fr' ? 'English (EN)' : 'Français (FR)'}
                 </button>
 
-                <Link
-                  to="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="py-3 rounded-xl bg-copper-500/10 border border-copper-500/20 text-copper-400 font-mono text-center flex items-center justify-center gap-2 decoration-transparent"
-                >
-                  <Terminal className="w-3.5 h-3.5" />
-                  Console Admin
-                </Link>
               </div>
 
               <p className="text-center text-[10px] font-mono text-zinc-500">
