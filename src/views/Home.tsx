@@ -13,18 +13,12 @@ export default function Home() {
 
   useEffect(() => {
     // Dynamic SEO titles based on active language
-    const title = lang === 'fr' 
-      ? 'Grégoire BATCHO — Développeur Full Stack & Ingénieur Logiciel' 
-      : 'Grégoire BATCHO — Full Stack Developer & Software Engineer';
-    document.title = title;
+    document.title = t.homeSeoTitle;
     
     // Update meta description dynamically for search indexers
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute('content', lang === 'fr' 
-        ? 'Dossier et portfolio de Grégoire BATCHO, ingénieur d’applications web robuste. Spécialités: React, TypeScript, Node.js et MongoDB.'
-        : 'Professional developer portfolio of Grégoire BATCHO. High-performance software engineering covering React, TypeScript, Node.js, security, and Databases.'
-      );
+      metaDesc.setAttribute('content', t.homeSeoDesc);
     }
 
     // Fetch projects
@@ -85,9 +79,9 @@ export default function Home() {
   ];
 
   // Determine displayed greetings holding customizable DB options
-  const displayTitle = profile ? (lang === 'fr' ? profile.titleFr : profile.titleEn) : t.heroTitle;
-  const displaySubtitle = profile ? (lang === 'fr' ? profile.bioFr : profile.bioEn) : t.heroSubtitle;
-  const displayBio = profile ? (lang === 'fr' ? profile.aboutBioFr : profile.aboutBioEn) : t.aboutBio;
+  const displayTitle = profile ? (lang === 'fr' ? (profile.titleFr || profile.titleEn) : (profile.titleEn || profile.titleFr)) : t.heroTitle;
+  const displaySubtitle = profile ? (lang === 'fr' ? (profile.bioFr || profile.bioEn) : (profile.bioEn || profile.bioFr)) : t.heroSubtitle;
+  const displayBio = profile ? (lang === 'fr' ? (profile.aboutBioFr || profile.aboutBioEn) : (profile.aboutBioEn || profile.aboutBioFr)) : t.aboutBio;
 
   return (
     <div className="relative min-h-screen pt-28 pb-16 px-4 md:px-8 max-w-6xl mx-auto overflow-hidden">
@@ -108,7 +102,7 @@ export default function Home() {
           <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[11px] font-mono tracking-wide text-zinc-300">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             <span className="w-2 h-2 rounded-full bg-emerald-500 absolute" />
-            <span>{lang === 'fr' ? 'Disponible pour opportunités' : 'Available for opportunities'}</span>
+            <span>{t.homeAvailableFlag}</span>
           </div>
 
           {/* Dynamic Profile Photo Avatar */}
@@ -167,7 +161,7 @@ export default function Home() {
             className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-zinc-950/40 border border-white/5 hover:border-copper-500/35 text-white font-medium text-sm tracking-wide backdrop-blur hover:bg-white/5 active:scale-98 transition-all duration-300 flex items-center justify-center gap-2 decoration-transparent cursor-pointer"
           >
             <Download className="w-4 h-4 text-copper-400" />
-            <span>{lang === 'fr' ? 'Télécharger mon CV' : 'Download Resume'}</span>
+            <span>{t.homeDownloadCv}</span>
           </a>
 
           <Link
@@ -198,7 +192,7 @@ export default function Home() {
               to="/about"
               className="inline-flex items-center text-xs font-mono tracking-tight text-copper-400 hover:text-white transition-colors gap-1.5 hover:underline decoration-transparent"
             >
-              <span>{lang === 'fr' ? 'Découvrir ma stack complète' : 'Discover my entire stack'}</span>
+              <span>{t.homeDiscoverStack}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -232,14 +226,14 @@ export default function Home() {
               <span>{t.projectsTitle}</span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-white">
-              {lang === 'fr' ? 'Sélections de Réalisations' : 'Curated Works'}
+              {t.homeCuratedWorks}
             </h3>
           </div>
           <Link
             to="/projects"
             className="inline-flex items-center text-xs font-mono text-copper-400 hover:text-white transition-colors gap-1 decoration-transparent"
           >
-            <span>{lang === 'fr' ? 'Parcourir tous les projets' : 'Browse all projects'}</span>
+            <span>{t.homeBrowseProjects}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -260,7 +254,7 @@ export default function Home() {
           </div>
         ) : projects.length === 0 ? (
           <p className="text-sm text-zinc-500 italic text-center py-6">
-            {lang === 'fr' ? 'Aucun projet sélectionné.' : 'No featured projects cataloged.'}
+            {t.homeNoProjects}
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -301,7 +295,7 @@ export default function Home() {
                     </div>
                     
                     <p className="text-zinc-400 text-xs leading-relaxed line-clamp-3">
-                      {lang === 'fr' ? proj.shortDescriptionFr : proj.shortDescriptionEn}
+                      {lang === 'fr' ? (proj.shortDescriptionFr || proj.shortDescriptionEn) : (proj.shortDescriptionEn || proj.shortDescriptionFr)}
                     </p>
                   </div>
 
@@ -357,19 +351,13 @@ export default function Home() {
         
         <div className="space-y-2 text-left">
           <p className="text-[11px] font-mono text-copper-400 tracking-wider uppercase">
-            {lang === 'fr' ? 'Expérience & Parcours' : 'Experience & Track'}
+            {t.homeExpTeaserTitle}
           </p>
           <h4 className="text-lg sm:text-xl font-bold font-display text-white tracking-tight">
-            {lang === 'fr' 
-              ? 'Prêt à collaborer sur vos initiatives technologiques ?' 
-              : 'Equipped to elevate your technical projects?'
-            }
+            {t.homeExpTeaserHeading}
           </h4>
           <p className="text-xs text-zinc-400 max-w-xl">
-            {lang === 'fr'
-              ? 'Découvrez mon parcours académique et professionnel, mes rôles en développement freelance ainsi que les méthodologies apprises.'
-              : 'Explore my detailed background, freelance roles, core responsibilities, and industrial workflows learned along the timeline.'
-            }
+            {t.homeExpTeaserDesc}
           </p>
         </div>
 
@@ -377,7 +365,7 @@ export default function Home() {
           to="/experience"
           className="w-full md:w-auto px-6 py-3 rounded-xl bg-white text-black hover:bg-zinc-200 text-xs font-semibold tracking-wide shadow-xl active:scale-98 transition-all duration-300 flex items-center justify-center gap-2 group shrink-0 decoration-transparent"
         >
-          <span>{lang === 'fr' ? 'Voir mon Expérience' : 'Review my Experience'}</span>
+          <span>{t.homeExpTeaserCta}</span>
           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </Link>
       </section>

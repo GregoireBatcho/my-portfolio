@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Lock, Terminal, Loader2, LogOut, Plus, Trash2, Edit3, 
   Mail, MailOpen, Calendar, Star, FolderGit, Check, Tag, Info, ShieldCheck,
-  Briefcase, Wrench, FileText, Upload, Download, Globe, GraduationCap
+  Briefcase, Wrench, FileText, Upload, Download, Globe, GraduationCap,
+  LayoutDashboard, Inbox, AlertCircle, Eye, CheckCircle2, Award
 } from 'lucide-react';
 
 export default function Admin() {
@@ -18,7 +19,7 @@ export default function Admin() {
   const [loginError, setLoginError] = useState('');
 
   // Dashboard workspace states
-  const [activeTab, setActiveTab] = useState<'projects' | 'experiences' | 'technologies' | 'profile' | 'messages'>('projects');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'projects' | 'experiences' | 'technologies' | 'profile' | 'messages'>('dashboard');
   const [projects, setProjects] = useState<Project[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [experiences, setExperiences] = useState<any[]>([]);
@@ -595,6 +596,17 @@ export default function Admin() {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div className="flex bg-zinc-950 p-1 rounded-xl border border-white/5 font-display overflow-x-auto max-w-full space-x-1">
               <button
+                onClick={() => { setActiveTab('dashboard'); }}
+                className={`px-3.5 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === 'dashboard'
+                    ? 'bg-copper-500 text-black font-semibold'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>Dashboard</span>
+              </button>
+              <button
                 onClick={() => { setActiveTab('projects'); setProjectFormOpen(false); }}
                 className={`px-3 py-2 rounded-lg text-xs font-medium tracking-wide transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'projects'
@@ -687,6 +699,313 @@ export default function Admin() {
           {/* Form Overlay Modal or Content panels */}
           {!loadingData && (
             <div>
+              {/* TAB DASHBOARD */}
+              {activeTab === 'dashboard' && (
+                <div className="space-y-6">
+                  {/* Dashboard Welcome Header */}
+                  <div className="p-6 rounded-2xl bg-zinc-950 border border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold font-display text-white tracking-tight flex items-center gap-2">
+                        <span>👋</span>
+                        <span>{lang === 'fr' ? 'Ravi de vous revoir, Grégoire' : 'Welcome back, Grégoire'}</span>
+                      </h3>
+                      <p className="text-xs text-zinc-500 max-w-xl">
+                        {lang === 'fr'
+                          ? "Voici une vue d'ensemble des statistiques de votre portfolio. Pilotez vos messages, mettez à jour votre parcours et gérez vos projets publiés depuis Abidjan."
+                          : "Here is an overview of your portfolio activity. Manage incoming messages, adjust your professional journey and update active showcases."
+                        }
+                      </p>
+                    </div>
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 self-stretch md:self-auto flex flex-col items-center justify-center text-center">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">{lang === 'fr' ? 'Date locale' : 'Local Date'}</span>
+                      <span className="text-xs font-semibold font-mono text-copper-400 mt-0.5">{new Date().toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    </div>
+                  </div>
+
+                  {/* High Intensity Metrics Bento Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Card 1: Inbox Messages */}
+                    <div className="glass-panel p-5 rounded-2xl border border-white/5 flex flex-col justify-between hover:border-copper-500/20 transition-all group shadow-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium text-zinc-500 block uppercase tracking-wider">{lang === 'fr' ? 'Messages Inbox' : 'Inbox mail'}</span>
+                          <span className="text-2xl font-bold text-white font-display mt-1 block">
+                            {messages.length}
+                          </span>
+                        </div>
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                          <Inbox className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-white/5 flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                          <span>{lang === 'fr' ? 'Messages non lus :' : 'Unread items:'}</span>
+                          <span className={`font-mono font-bold px-1.5 py-0.5 rounded ${unreadMessagesCount > 0 ? 'bg-amber-500/10 text-amber-400 animate-pulse' : 'bg-zinc-900 text-zinc-500'}`}>
+                            {unreadMessagesCount}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => setActiveTab('messages')}
+                          className="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium text-[11px] transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <Eye className="w-3 h-3 text-zinc-400" />
+                          <span>{lang === 'fr' ? 'Consulter' : 'Browse'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card 2: Showcase Projects */}
+                    <div className="glass-panel p-5 rounded-2xl border border-white/5 flex flex-col justify-between hover:border-copper-500/20 transition-all group shadow-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium text-zinc-500 block uppercase tracking-wider">{lang === 'fr' ? 'Projets Publiés' : 'Active Projects'}</span>
+                          <span className="text-2xl font-bold text-white font-display mt-1 block">
+                            {projects.length}
+                          </span>
+                        </div>
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                          <FolderGit className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-white/5 flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                          <span>{lang === 'fr' ? 'Catégorie Fullstack' : 'Fullstack Deploys'}</span>
+                          <span className="font-mono font-semibold text-zinc-300">
+                            {projects.filter(p => p.category === 'fullstack').length}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => { setActiveTab('projects'); setProjectFormOpen(true); setEditingProjectId(null); }}
+                          className="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-copper-500/10 hover:bg-copper-500/20 text-copper-400 font-medium text-[11px] transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3 text-copper-400" />
+                          <span>{lang === 'fr' ? 'Nouveau Projet' : 'New Project'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card 3: Experience Milestones */}
+                    <div className="glass-panel p-5 rounded-2xl border border-white/5 flex flex-col justify-between hover:border-copper-500/20 transition-all group shadow-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium text-zinc-500 block uppercase tracking-wider">Milestones & CV</span>
+                          <span className="text-2xl font-bold text-white font-display mt-1 block">
+                            {experiences.length}
+                          </span>
+                        </div>
+                        <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 group-hover:scale-110 transition-transform">
+                          <Briefcase className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-white/5 flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                          <span>{lang === 'fr' ? 'Expériences Pros :' : 'Professional Roles:'}</span>
+                          <span className="font-mono font-semibold text-zinc-300">
+                            {experiences.filter(e => e.type === 'work').length}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => { setActiveTab('experiences'); setExperienceFormOpen(true); setEditingExperienceId(null); }}
+                          className="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 font-medium text-[11px] transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3 text-teal-400" />
+                          <span>{lang === 'fr' ? 'Ajouter Exp' : 'Add Experience'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card 4: Modern Skills */}
+                    <div className="glass-panel p-5 rounded-2xl border border-white/5 flex flex-col justify-between hover:border-copper-500/20 transition-all group shadow-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium text-zinc-500 block uppercase tracking-wider">{lang === 'fr' ? 'Technologies' : 'Skills Inventory'}</span>
+                          <span className="text-2xl font-bold text-white font-display mt-1 block">
+                            {technologies.length}
+                          </span>
+                        </div>
+                        <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                          <Wrench className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-white/5 flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                          <span>Frontend Stack :</span>
+                          <span className="font-mono font-semibold text-zinc-300">
+                            {technologies.filter(t => t.category === 'frontend').length}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => { setActiveTab('technologies'); setTechFormOpen(true); setEditingTechId(null); }}
+                          className="w-full mt-1.5 py-1.5 px-3 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 font-medium text-[11px] transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3 text-purple-400" />
+                          <span>{lang === 'fr' ? 'Ajouter Tech' : 'Add Tech'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Secondary Bento Grid Row: Integrity Checklist & Recent Messages Feed */}
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    {/* Diagnostic Checklist */}
+                    <div className="md:col-span-2 glass-panel p-5 rounded-2xl border border-white/5 space-y-4">
+                      <h4 className="text-sm font-bold font-display text-white tracking-wide border-b border-white/5 pb-2">
+                        {lang === 'fr' ? 'Diagnostic & Intégrité Système' : 'Diagnostic & Integrity Center'}
+                      </h4>
+
+                      <div className="space-y-3">
+                        {/* 1. Firestore Data Node */}
+                        <div className="flex items-center justify-between text-xs pb-1 border-b border-white/5">
+                          <span className="text-zinc-400">{lang === 'fr' ? 'Base de Données' : 'Database Node'}</span>
+                          <span className="inline-flex items-center gap-1 font-semibold text-emerald-400">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Firestore Connected</span>
+                          </span>
+                        </div>
+
+                        {/* 2. Security Configuration status */}
+                        <div className="flex items-center justify-between text-xs pb-1 border-b border-white/5">
+                          <span className="text-zinc-400">{lang === 'fr' ? 'Sécurité' : 'Security Policy'}</span>
+                          <span className="inline-flex items-center gap-1 font-semibold text-emerald-400">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Passcode Gate Active</span>
+                          </span>
+                        </div>
+
+                        {/* 3. Mailing Relay setup status check */}
+                        <div className="flex items-center justify-between text-xs pb-1 border-b border-white/5">
+                          <span className="text-zinc-400">{lang === 'fr' ? 'Passerelle E-mails' : 'Email Gate'}</span>
+                          <span className="inline-flex items-center gap-1.5 font-semibold text-amber-400">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>Simulated/Fallback</span>
+                          </span>
+                        </div>
+
+                        {/* 4. Profiles parameters completeness indicator */}
+                        <div className="pt-2">
+                          <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5">
+                            <span>{lang === 'fr' ? 'Complétude du Profil Public :' : 'Public Profile Completeness:'}</span>
+                            <span className="font-mono font-semibold text-copper-400">
+                              {(() => {
+                                const fields = [
+                                  profile.name,
+                                  profile.email,
+                                  profile.phone,
+                                  profile.titleFr,
+                                  profile.titleEn,
+                                  profile.bioFr,
+                                  profile.bioEn,
+                                  profile.aboutBioFr,
+                                  profile.aboutBioEn,
+                                  profile.avatarUrl,
+                                  profile.cvName
+                                ];
+                                const filledCount = fields.filter(val => val && String(val).trim() !== '').length;
+                                return Math.round((filledCount / fields.length) * 100);
+                              })()}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-zinc-900 border border-white/5 h-2 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-copper-500 h-full rounded-full transition-all duration-1000"
+                              style={{ 
+                                width: `${(() => {
+                                  const fields = [
+                                    profile.name,
+                                    profile.email,
+                                    profile.phone,
+                                    profile.titleFr,
+                                    profile.titleEn,
+                                    profile.bioFr,
+                                    profile.bioEn,
+                                    profile.aboutBioFr,
+                                    profile.aboutBioEn,
+                                    profile.avatarUrl,
+                                    profile.cvName
+                                  ];
+                                  const filledCount = fields.filter(val => val && String(val).trim() !== '').length;
+                                  return Math.round((filledCount / fields.length) * 100);
+                                })()}%` 
+                              }}
+                            />
+                          </div>
+                          <button
+                            onClick={() => setActiveTab('profile')}
+                            className="mt-3 text-[10px] text-zinc-500 hover:text-white underline cursor-pointer"
+                          >
+                            {lang === 'fr' ? 'Modifier les détails et le CV' : 'Edit profile fields & CV Upload'} &rarr;
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Contacts List Stream */}
+                    <div className="md:col-span-3 glass-panel p-5 rounded-2xl border border-white/5 flex flex-col justify-between space-y-3">
+                      <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                        <h4 className="text-sm font-bold font-display text-white tracking-wide">
+                          {lang === 'fr' ? 'Dernières Requêtes Boîte de Réception' : 'Latest Inbox Form Deliveries'}
+                        </h4>
+                        <span className="text-[10px] font-mono text-zinc-500">
+                          {messages.length} total
+                        </span>
+                      </div>
+
+                      <div className="space-y-3 flex-1 overflow-y-auto max-h-[220px] scrollbar-thin">
+                        {messages.length === 0 ? (
+                          <div className="text-center py-8 text-xs text-zinc-500 italic">
+                            {lang === 'fr' ? "Aucun e-mail reçu pour le moment." : "No contact records stored in inbox."}
+                          </div>
+                        ) : (
+                          messages.slice(0, 3).map((msg) => (
+                            <div 
+                              key={msg._id}
+                              className={`p-3 rounded-xl border transition-colors flex items-start justify-between gap-3 ${
+                                msg.isRead 
+                                  ? 'bg-zinc-950/20 border-white/5 opacity-70' 
+                                  : 'bg-copper-500/5 border-copper-500/10'
+                              }`}
+                            >
+                              <div className="space-y-1 min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-xs font-semibold text-white truncate max-w-[120px]">{msg.name}</span>
+                                  {!msg.isRead && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                  )}
+                                  <span className="text-[9px] font-mono text-zinc-500">
+                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleDateString() : 'N/A'}
+                                  </span>
+                                </div>
+                                <div className="text-[11px] font-medium text-copper-400 truncate">{msg.subject}</div>
+                                <p className="text-[10px] text-zinc-400 line-clamp-1">{msg.message}</p>
+                              </div>
+
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                {!msg.isRead && (
+                                  <button
+                                    onClick={() => markMessageAsRead(msg._id!)}
+                                    title={lang === 'fr' ? 'Marquer comme lu' : 'Mark as read'}
+                                    className="p-1 px-2 rounded bg-copper-500 hover:bg-copper-400 text-black text-[10px] font-bold cursor-pointer transition-colors"
+                                  >
+                                    ✓
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => setActiveTab('messages')}
+                        className="w-full text-center py-1.5 bg-zinc-950 hover:bg-zinc-900 border border-white/5 text-zinc-300 hover:text-white rounded-xl text-xs transition-colors cursor-pointer"
+                      >
+                        {lang === 'fr' ? 'Ouvrir toute la boîte de réception' : 'View full messages panel'} &rarr;
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* TAB PROJECTS */}
               {activeTab === 'projects' && (
                 <div className="space-y-6">
@@ -728,56 +1047,38 @@ export default function Admin() {
                         </div>
                       </div>
 
-                      {/* Brief descriptions */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">{appLanguageContext.t.adminProjectShortFr}</label>
-                          <input
-                            type="text"
-                            required
-                            value={projectFormData.shortDescriptionFr}
-                            onChange={(e) => setProjectFormData({ ...projectFormData, shortDescriptionFr: e.target.value })}
-                            className="w-full px-3 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none"
-                            placeholder="Outil de dessin collaboratif temps réel."
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">{appLanguageContext.t.adminProjectShortEn}</label>
-                          <input
-                            type="text"
-                            required
-                            value={projectFormData.shortDescriptionEn}
-                            onChange={(e) => setProjectFormData({ ...projectFormData, shortDescriptionEn: e.target.value })}
-                            className="w-full px-3 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none"
-                            placeholder="Realtime visual board workspace."
-                          />
-                        </div>
+                      {/* Brief description in single language */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-mono text-zinc-500">{appLanguageContext.t.adminProjectShortFr}</label>
+                        <input
+                          type="text"
+                          required
+                          value={projectFormData.shortDescriptionFr}
+                          onChange={(e) => setProjectFormData({ 
+                            ...projectFormData, 
+                            shortDescriptionFr: e.target.value,
+                            shortDescriptionEn: e.target.value 
+                          })}
+                          className="w-full px-3 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none"
+                          placeholder="Outil de dessin collaboratif temps réel."
+                        />
                       </div>
 
-                      {/* Detailed narratives */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">{appLanguageContext.t.adminProjectDescFr}</label>
-                          <textarea
-                            rows={3}
-                            required
-                            value={projectFormData.descriptionFr}
-                            onChange={(e) => setProjectFormData({ ...projectFormData, descriptionFr: e.target.value })}
-                            className="w-full px-3 py-2 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none resize-none"
-                            placeholder="Une description complète d’architecture sur-mesure..."
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">{appLanguageContext.t.adminProjectDescEn}</label>
-                          <textarea
-                            rows={3}
-                            required
-                            value={projectFormData.descriptionEn}
-                            onChange={(e) => setProjectFormData({ ...projectFormData, descriptionEn: e.target.value })}
-                            className="w-full px-3 py-2 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none resize-none"
-                            placeholder="A descriptive system overview detailing full scale routines..."
-                          />
-                        </div>
+                      {/* Detailed narrative in single language */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-mono text-zinc-500">{appLanguageContext.t.adminProjectDescFr}</label>
+                        <textarea
+                          rows={4}
+                          required
+                          value={projectFormData.descriptionFr}
+                          onChange={(e) => setProjectFormData({ 
+                            ...projectFormData, 
+                            descriptionFr: e.target.value,
+                            descriptionEn: e.target.value 
+                          })}
+                          className="w-full px-3 py-2 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none resize-none"
+                          placeholder="Une description complète d’architecture sur-mesure..."
+                        />
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -965,33 +1266,23 @@ export default function Admin() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">Rôle / Diplôme (FR)</label>
-                          <input
-                            type="text"
-                            required
-                            value={experienceFormData.roleFr}
-                            onChange={(e) => setExperienceFormData({ ...experienceFormData, roleFr: e.target.value })}
-                            className="w-full px-4 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs sm:text-sm focus:outline-none"
-                            placeholder="Développeur Full Stack"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">Role / Degree (EN)</label>
-                          <input
-                            type="text"
-                            required
-                            value={experienceFormData.roleEn}
-                            onChange={(e) => setExperienceFormData({ ...experienceFormData, roleEn: e.target.value })}
-                            className="w-full px-4 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs sm:text-sm focus:outline-none"
-                            placeholder="Full Stack Developer"
-                          />
-                        </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-mono text-zinc-500">Rôle / Diplôme</label>
+                        <input
+                          type="text"
+                          required
+                          value={experienceFormData.roleFr}
+                          onChange={(e) => setExperienceFormData({ 
+                            ...experienceFormData, 
+                            roleFr: e.target.value,
+                            roleEn: e.target.value 
+                          })}
+                          className="w-full px-4 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs sm:text-sm focus:outline-none"
+                          placeholder="Développeur Full Stack"
+                        />
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="text-xs font-mono text-zinc-500">Entreprise / Université</label>
                           <input
@@ -1005,54 +1296,36 @@ export default function Admin() {
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">Période (FR)</label>
+                          <label className="text-xs font-mono text-zinc-500">Période</label>
                           <input
                             type="text"
                             required
                             value={experienceFormData.periodFr}
-                            onChange={(e) => setExperienceFormData({ ...experienceFormData, periodFr: e.target.value })}
+                            onChange={(e) => setExperienceFormData({ 
+                              ...experienceFormData, 
+                              periodFr: e.target.value,
+                              periodEn: e.target.value 
+                            })}
                             className="w-full px-4 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none"
                             placeholder="2025 - Présent"
                           />
                         </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">Period (EN)</label>
-                          <input
-                            type="text"
-                            required
-                            value={experienceFormData.periodEn}
-                            onChange={(e) => setExperienceFormData({ ...experienceFormData, periodEn: e.target.value })}
-                            className="w-full px-4 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none"
-                            placeholder="2025 - Present"
-                          />
-                        </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">Description (FR)</label>
-                          <textarea
-                            rows={3}
-                            required
-                            value={experienceFormData.descriptionFr}
-                            onChange={(e) => setExperienceFormData({ ...experienceFormData, descriptionFr: e.target.value })}
-                            className="w-full p-3 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none resize-none"
-                            placeholder="Conception d’architectures logicielles et d’applications..."
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-xs font-mono text-zinc-500">Description (EN)</label>
-                          <textarea
-                            rows={3}
-                            required
-                            value={experienceFormData.descriptionEn}
-                            onChange={(e) => setExperienceFormData({ ...experienceFormData, descriptionEn: e.target.value })}
-                            className="w-full p-3 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none resize-none"
-                            placeholder="Architecting backend services and interactive layouts..."
-                          />
-                        </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-mono text-zinc-500">Description</label>
+                        <textarea
+                          rows={4}
+                          required
+                          value={experienceFormData.descriptionFr}
+                          onChange={(e) => setExperienceFormData({ 
+                            ...experienceFormData, 
+                            descriptionFr: e.target.value,
+                            descriptionEn: e.target.value 
+                          })}
+                          className="w-full p-3 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none resize-none"
+                          placeholder="Conception d’architectures logicielles et d’applications..."
+                        />
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1356,73 +1629,49 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono text-zinc-500">Titre Professionnel (FR)</label>
-                      <input
-                        type="text"
-                        required
-                        value={profile.titleFr || ''}
-                        onChange={(e) => setProfile({ ...profile, titleFr: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono text-zinc-500">Professional Title (EN)</label>
-                      <input
-                        type="text"
-                        required
-                        value={profile.titleEn || ''}
-                        onChange={(e) => setProfile({ ...profile, titleEn: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none"
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-mono text-zinc-500">Titre Professionnel</label>
+                    <input
+                      type="text"
+                      required
+                      value={profile.titleFr || ''}
+                      onChange={(e) => setProfile({ 
+                        ...profile, 
+                        titleFr: e.target.value,
+                        titleEn: e.target.value 
+                      })}
+                      className="w-full px-4 py-2.5 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs focus:outline-none"
+                    />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono text-zinc-500">Accroche Hero (FR)</label>
-                      <textarea
-                        rows={2}
-                        required
-                        value={profile.bioFr || ''}
-                        onChange={(e) => setProfile({ ...profile, bioFr: e.target.value })}
-                        className="w-full p-3 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs resize-none focus:outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono text-zinc-500">Hero Hook (EN)</label>
-                      <textarea
-                        rows={2}
-                        required
-                        value={profile.bioEn || ''}
-                        onChange={(e) => setProfile({ ...profile, bioEn: e.target.value })}
-                        className="w-full p-3 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs resize-none focus:outline-none"
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-mono text-zinc-500">Accroche Hero</label>
+                    <textarea
+                      rows={2}
+                      required
+                      value={profile.bioFr || ''}
+                      onChange={(e) => setProfile({ 
+                        ...profile, 
+                        bioFr: e.target.value,
+                        bioEn: e.target.value 
+                      })}
+                      className="w-full p-3 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs resize-none focus:outline-none"
+                    />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono text-zinc-500">Biographie "À propos" (FR)</label>
-                      <textarea
-                        rows={4}
-                        required
-                        value={profile.aboutBioFr || ''}
-                        onChange={(e) => setProfile({ ...profile, aboutBioFr: e.target.value })}
-                        className="w-full p-3 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs resize-none focus:outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono text-zinc-500">About Bio Narrative (EN)</label>
-                      <textarea
-                        rows={4}
-                        required
-                        value={profile.aboutBioEn || ''}
-                        onChange={(e) => setProfile({ ...profile, aboutBioEn: e.target.value })}
-                        className="w-full p-3 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs resize-none focus:outline-none"
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-mono text-zinc-500">Biographie "À propos"</label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={profile.aboutBioFr || ''}
+                      onChange={(e) => setProfile({ 
+                        ...profile, 
+                        aboutBioFr: e.target.value,
+                        aboutBioEn: e.target.value 
+                      })}
+                      className="w-full p-3 bg-zinc-950 border border-white/5 focus:border-copper-500 text-white rounded-xl text-xs resize-none focus:outline-none"
+                    />
                   </div>
 
                   <div className="bg-zinc-950/60 p-5 rounded-2xl border border-white/5 space-y-3">

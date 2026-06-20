@@ -17,17 +17,11 @@ export default function Projects() {
 
   useEffect(() => {
     // Dynamic SEO titles based on active language
-    const title = lang === 'fr'
-      ? 'Projets & Réalisations | Grégoire BATCHO'
-      : 'Projects & Showcase | Grégoire BATCHO';
-    document.title = title;
+    document.title = t.projectsSeoTitle;
 
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute('content', lang === 'fr'
-        ? 'Parcourez les applications créées par Grégoire BATCHO. Systèmes full stack, architectures optimisées, et bases de données sécurisées.'
-        : 'Browse through standard and bespoke web applications created by Grégoire BATCHO. Full stack environments, clean codings, and API security.'
-      );
+      metaDesc.setAttribute('content', t.projectsSeoDesc);
     }
 
     fetch('/api/projects')
@@ -71,7 +65,7 @@ export default function Projects() {
       <section className="space-y-4 mb-8">
         <div className="flex items-center space-x-2 text-copper-400 text-xs font-mono tracking-widest uppercase">
           <span className="w-3 h-px bg-copper-400" />
-          <span>{lang === 'fr' ? 'Travaux & Réalisations' : 'Portfolio Showcase'}</span>
+          <span>{t.projectsShowcaseLabel}</span>
         </div>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display text-white tracking-tight">
           {t.projectsTitle}
@@ -124,7 +118,7 @@ export default function Projects() {
       ) : filteredProjects.length === 0 ? (
         <section className="text-center py-12">
           <p className="text-sm font-mono text-zinc-500 italic">
-            {lang === 'fr' ? 'Aucun projet trouvé pour cette catégorie.' : 'No projects cataloged under this stack.'}
+            {t.projectsNoProjects}
           </p>
         </section>
       ) : (
@@ -167,7 +161,7 @@ export default function Projects() {
                     {p.title}
                   </h3>
                   <p className="text-zinc-400 text-xs leading-relaxed line-clamp-3">
-                    {lang === 'fr' ? p.shortDescriptionFr : p.shortDescriptionEn}
+                    {lang === 'fr' ? (p.shortDescriptionFr || p.shortDescriptionEn) : (p.shortDescriptionEn || p.shortDescriptionFr)}
                   </p>
                 </div>
 
@@ -181,7 +175,7 @@ export default function Projects() {
                   </div>
 
                   <div className="flex items-center text-[11px] font-mono font-medium text-copper-400 group-hover:text-white transition-colors gap-1 pt-1">
-                    <span>{lang === 'fr' ? 'Consulter les détails' : 'Analyze details'}</span>
+                    <span>{t.projectsAnalyzeDetails}</span>
                     <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </div>
                 </div>
@@ -234,7 +228,7 @@ export default function Projects() {
                   className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950/90 border border-white/10 text-xs font-medium text-zinc-300 hover:text-white transition-all cursor-pointer shadow-md"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>{lang === 'fr' ? 'Retour' : 'Back'}</span>
+                  <span>{t.projectBtnBack}</span>
                 </button>
               </div>
 
@@ -245,7 +239,7 @@ export default function Projects() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/5 pb-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-copper-400 text-[10px] font-mono uppercase tracking-wider bg-copper-500/10 px-2 py-0.5 rounded border border-copper-500/20 font-bold">
+                       <span className="text-copper-400 text-[10px] font-mono uppercase tracking-wider bg-copper-500/10 px-2 py-0.5 rounded border border-copper-500/20 font-bold">
                         {activeProject.category === 'fullstack' ? 'Full Stack' : activeProject.category}
                       </span>
                       {activeProject.isFeatured && (
@@ -290,10 +284,10 @@ export default function Projects() {
                 {/* Narrative description */}
                 <div className="space-y-3">
                   <h4 className="text-white font-display font-medium text-xs tracking-wider uppercase font-mono text-zinc-500">
-                    {lang === 'fr' ? 'À propos du système' : 'System Overview'}
+                    {t.projectOverviewLabel}
                   </h4>
                   <p className="text-zinc-300 leading-relaxed text-sm sm:text-base whitespace-pre-wrap">
-                    {lang === 'fr' ? activeProject.descriptionFr : activeProject.descriptionEn}
+                    {lang === 'fr' ? (activeProject.descriptionFr || activeProject.descriptionEn) : (activeProject.descriptionEn || activeProject.descriptionFr)}
                   </p>
                 </div>
 
@@ -301,7 +295,7 @@ export default function Projects() {
                 <div className="space-y-3 pt-2">
                   <h4 className="text-white font-display font-medium text-xs tracking-wider uppercase font-mono text-zinc-500 flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5 text-copper-400" />
-                    <span>{lang === 'fr' ? 'Technologies implémentées' : 'Implemented Technologies'}</span>
+                    <span>{t.projectTechSpecsLabel}</span>
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {activeProject.tags?.map((tag, i) => (
@@ -317,7 +311,7 @@ export default function Projects() {
                   <div className="border-t border-white/5 pt-6 mt-6 space-y-4">
                     <h4 className="text-white font-display font-medium text-xs tracking-wider uppercase font-mono text-zinc-500 flex items-center gap-1.5">
                       <Grid className="w-3.5 h-3.5 text-copper-400" />
-                      <span>{lang === 'fr' ? 'Projets similaires' : 'Related Architectures'}</span>
+                      <span>{t.projectRelatedLabel}</span>
                     </h4>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -335,7 +329,7 @@ export default function Projects() {
                           <div className="flex flex-col justify-center space-y-1 overflow-hidden">
                             <span className="text-white font-medium text-xs truncate font-display">{rp.title}</span>
                             <span className="text-[10px] text-zinc-500 truncate">
-                              {lang === 'fr' ? rp.shortDescriptionFr : rp.shortDescriptionEn}
+                              {lang === 'fr' ? (rp.shortDescriptionFr || rp.shortDescriptionEn) : (rp.shortDescriptionEn || rp.shortDescriptionFr)}
                             </span>
                           </div>
                         </div>

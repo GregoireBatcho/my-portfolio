@@ -224,10 +224,10 @@ let memoryProfile = {
   aboutBioEn: 'Passionate about the synergy between neat code and meticulous user interface design, I build stable, efficient systems. My methodology takes inspiration from Scandinavian simplicity and industrial execution: every line of code must deliver efficiency, and every pixel must serve a purpose.',
   aboutBioFr: 'Passionné par la synergie entre un code élégant et un design minutieux, je conçois des systèmes stables et réactifs. Mon approche s’inspire de la simplicité scandinave et de l’efficacité industrielle : chaque ligne de code doit servir la performance, et chaque pixel doit guider l’utilisateur.',
   avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
-  socialGithub: 'https://github.com/DOUTCHO',
-  socialLinkedin: 'https://linkedin.com/in/gregoirebatcho',
+  socialGithub: 'https://github.com/grg-batcho',
+  socialLinkedin: 'https://linkedin.com/in/grg-batcho',
   socialTwitter: '',
-  phone: '+225 07 07 39 98 30',
+  phone: '+33 6 00 00 00 00',
   cvName: 'CV_Gregoire_Batcho.pdf',
   cvData: '' // stored Base64
 };
@@ -282,31 +282,79 @@ async function seedDatabase() {
   }
 }
 
-async function connectToMongo() {
+// Global variable to cache the MongoDB connection promise for serverless scalability (Vercel)
+let mongoConnectionPromise: Promise<typeof mongoose> | null = null;
+
+async function connectToMongo(): Promise<any> {
   const uri = process.env.MONGODB_URI;
   if (!uri || uri.includes('username:password')) {
     console.warn('⚠️ MONGO_URI is unset or default. Running in-memory database mode.');
-    return;
+    return null;
   }
+
+  // Reuse existing connection if connection is already established (1 = connected, 2 = connecting)
+  if (mongoose.connection.readyState >= 1) {
+    isMongoConnected = true;
+    return mongoose.connection;
+  }
+
+  // Reuse ongoing connection promise if available
+  if (mongoConnectionPromise) {
+    try {
+      await mongoConnectionPromise;
+      isMongoConnected = mongoose.connection.readyState === 1;
+      return mongoose.connection;
+    } catch (err) {
+      // Clear poisoned promise so we try again on subsequent requests
+      mongoConnectionPromise = null;
+    }
+  }
+
   try {
     mongoose.set('strictQuery', true);
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+    console.log('🔌 Connecting to MongoDB Atlas (Connection Pool)...');
+    
+    // Maintain connection pool to prevent connection socket exhaustion in Serverless environments
+    mongoConnectionPromise = mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 10,        // Pool size limits connection overhead on Mongo Atlas
+      minPoolSize: 1,         // Keep at least 1 socket alive to reduce cold start spikes
+    });
+
+    await mongoConnectionPromise;
     isMongoConnected = true;
     console.log('✅ Connected to MongoDB Atlas successfully.');
     await seedDatabase();
+    return mongoose.connection;
   } catch (error: any) {
+    mongoConnectionPromise = null;
+    isMongoConnected = false;
     console.error('❌ MongoDB Atlas connection error:', error.message);
     console.warn('⚠️ Server fallback activated: using high-quality in-memory local state.');
+    return null;
   }
 }
 connectToMongo();
+
+// Scalability Middleware: Guarantees Database Connectivity across Vercel serverless request invocations
+app.use(async (req, res, next) => {
+  // Only connect to Mongo if URL is mapped to an API route to speed up other assets
+  if (req.path.startsWith('/api')) {
+    try {
+      await connectToMongo();
+    } catch (err) {
+      console.error('Pre-flight DB connection failure:', err);
+    }
+  }
+  next();
+});
 
 // Lazy initialization for Resend Service to prevent crash on startup if API key unset
 let resendClient: Resend | null = null;
 function getResend() {
   if (!resendClient) {
     const key = process.env.RESEND_API_KEY;
-    if (key) {
+    if (key && key !== 're_123456789') {
       resendClient = new Resend(key);
       console.log('✅ Resend Email module initialized successfully.');
     } else {
@@ -510,7 +558,7 @@ app.post('/api/contacts', async (req, res) => {
     if (resend) {
       try {
         const mailResponse = await resend.emails.send({
-          from: `Resend <${sender}>`,
+          from: `Portfolio <${sender}>`,
           to: recipient,
           subject: `📩 Portfolio: "${subject || 'Nouveau Contact'}" de ${name}`,
           html: `
@@ -921,4 +969,11 @@ async function startServer() {
   });
 }
 
-startServer();
+// On serverless environments like Vercel, the server is imported and executed as a serverless function.
+// In non-vercel environments (local dev or traditional production servers), we start the HTTP listener.
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+// Export Express app for Vercel serverless functions, testing harnesses, or modular wrappers
+export default app;

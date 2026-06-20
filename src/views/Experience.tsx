@@ -46,17 +46,11 @@ export default function Experience() {
 
   useEffect(() => {
     // Dynamic SEO titles based on active language
-    const title = lang === 'fr'
-      ? 'Expérience & Parcours professionnel | Grégoire BATCHO'
-      : 'Professional Experience & Career path | Grégoire BATCHO';
-    document.title = title;
+    document.title = t.expSeoTitle;
 
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute('content', lang === 'fr'
-        ? 'Curriculum vitæ et jalons professionnels de Grégoire BATCHO. Apprentissages en ingénierie logiciel, gestion d’API REST, et développement d’applications web.'
-        : 'Curriculum Vitae and professional milestones of Grégoire BATCHO. Core work, apprentice scopes, database schemas, and micro-frontend layers.'
-      );
+      metaDesc.setAttribute('content', t.expSeoDesc);
     }
 
     fetch('/api/experiences')
@@ -85,7 +79,7 @@ export default function Experience() {
       <section className="space-y-4 mb-16 text-center">
         <div className="inline-flex items-center space-x-2 text-copper-400 text-xs font-mono tracking-widest uppercase">
           <span className="w-3 h-px bg-copper-400" />
-          <span>{lang === 'fr' ? 'Parcours & Jalons' : 'Track & Milestones'}</span>
+          <span>{t.expTrackMilestonesLabel}</span>
           <span className="w-3 h-px bg-copper-400" />
         </div>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display text-white tracking-tight">
@@ -130,7 +124,7 @@ export default function Experience() {
                 {/* Role and Company */}
                 <div className="space-y-1">
                   <h3 className="font-display font-semibold text-white text-base">
-                    {lang === 'fr' ? milestone.roleFr : milestone.roleEn}
+                    {lang === 'fr' ? (milestone.roleFr || milestone.roleEn) : (milestone.roleEn || milestone.roleFr)}
                   </h3>
                   <div className="flex items-center space-x-2 text-zinc-400 text-xs font-medium">
                     {milestone.type === 'work' ? (
@@ -145,13 +139,13 @@ export default function Experience() {
                 {/* Date period */}
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-950 text-[10px] font-mono text-zinc-400 border border-white/5 self-start sm:self-center">
                   <Calendar className="w-3 h-3 text-zinc-500" />
-                  <span>{lang === 'fr' ? milestone.periodFr : milestone.periodEn}</span>
+                  <span>{lang === 'fr' ? (milestone.periodFr || milestone.periodEn) : (milestone.periodEn || milestone.periodFr)}</span>
                 </span>
               </div>
 
               {/* Description body */}
               <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
-                {lang === 'fr' ? milestone.descriptionFr : milestone.descriptionEn}
+                {lang === 'fr' ? (milestone.descriptionFr || milestone.descriptionEn) : (milestone.descriptionEn || milestone.descriptionFr)}
               </p>
 
               {/* Skills checklist */}
@@ -159,7 +153,7 @@ export default function Experience() {
                 <div className="space-y-2 pt-2">
                   <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center gap-1 leading-none">
                     <ChevronRight className="w-3 h-3 text-copper-500" />
-                    <span>{lang === 'fr' ? 'Compétences mobilisées' : 'Acquired Skillsets'}</span>
+                    <span>{t.expAcquiredSkillsetsLabel}</span>
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {milestone.skills.map((skill: string, sIdx: number) => (
@@ -179,7 +173,7 @@ export default function Experience() {
         {/* Ending decorative capsule */}
         <div className="inline-flex items-center space-x-2 pl-4 text-[10px] font-mono text-zinc-600 tracking-wider uppercase">
           <Award className="w-4.5 h-4.5 text-copper-500/50" />
-          <span>{lang === 'fr' ? 'Suite à écrire avec vous.' : 'Continually expanding.'}</span>
+          <span>{t.expContinuallyExpanding}</span>
         </div>
 
       </section>

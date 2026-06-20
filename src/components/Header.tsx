@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext.js';
-import { Menu, X, Globe, Terminal, Sun, Moon } from 'lucide-react';
+import { Menu, X, Globe, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Header() {
@@ -97,7 +97,6 @@ export default function Header() {
               <Globe className="w-3 h-3 text-copper-400" />
               {lang === 'fr' ? 'EN' : 'FR'}
             </button>
-
           </div>
 
           {/* Mobile responsive triggers */}
@@ -168,18 +167,17 @@ export default function Header() {
             </div>
 
             <div className="mt-8 border-t border-white/5 pt-4 space-y-3">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col space-y-3">
                 <button
                   onClick={() => {
                     toggleLanguage();
                     setMobileMenuOpen(false);
                   }}
-                  className="py-3 rounded-xl bg-white/5 text-zinc-300 font-mono text-center hover:text-white flex items-center justify-center gap-2 border border-white/5"
+                  className="w-full py-3 rounded-xl bg-white/5 text-zinc-300 font-mono text-center hover:text-white flex items-center justify-center gap-2 border border-white/5"
                 >
                   <Globe className="w-3.5 h-3.5 text-copper-400" />
                   {lang === 'fr' ? 'English (EN)' : 'Français (FR)'}
                 </button>
-
               </div>
 
               <p className="text-center text-[10px] font-mono text-zinc-500">

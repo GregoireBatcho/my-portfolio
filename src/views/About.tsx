@@ -11,17 +11,11 @@ export default function About() {
 
   useEffect(() => {
     // Dynamic SEO titles based on active language
-    const title = lang === 'fr'
-      ? 'À Propos de Grégoire BATCHO | Compétences & Stack Technique'
-      : 'About Grégoire BATCHO | Skillsets & Technical Stack';
-    document.title = title;
+    document.title = t.aboutSeoTitle;
 
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute('content', lang === 'fr'
-        ? 'Découvrez le parcours de Grégoire BATCHO, son expertise frontend (React, Nextjs, Tailwind, ...), backend (Node.js, SQL, MonoDB, ...) et DevOps (Docker, ...).'
-        : 'Explore the vision of Grégoire BATCHO: full-stack expertise across React, Nextjs, Tailwind, Node.js, databases, and DevOps systems...'
-      );
+      metaDesc.setAttribute('content', t.aboutSeoDesc);
     }
 
     // Fetch profile
@@ -67,10 +61,10 @@ export default function About() {
 
   // Convert level 0-100 to label
   const getLevelLabel = (level: number) => {
-    if (level >= 90) return lang === 'fr' ? 'Expert' : 'Expert';
-    if (level >= 80) return lang === 'fr' ? 'Avancé' : 'Advanced';
-    if (level >= 65) return lang === 'fr' ? 'Maîtrisé' : 'Intermediate';
-    return lang === 'fr' ? 'Praticien' : 'Familiar';
+    if (level >= 90) return t.aboutLevelExpert;
+    if (level >= 80) return t.aboutLevelAdvanced;
+    if (level >= 65) return t.aboutLevelIntermediate;
+    return t.aboutLevelFamiliar;
   };
 
   const technicalCategories = {
@@ -87,22 +81,16 @@ export default function About() {
 
   const highLights = [
     {
-      title: lang === 'fr' ? 'Architecture Propre' : 'Clean Architecture',
-      desc: lang === 'fr' 
-        ? 'Séparation stricte des responsabilités (SOC), modularité absolue et minimisation de la dette technique.'
-        : 'Strict Separation of Concerns (SOC), absolute modularity, and aggressive reduction of technical debt.'
+      title: t.aboutHl1Title,
+      desc: t.aboutHl1Desc
     },
     {
-      title: lang === 'fr' ? 'Performance Maximale' : 'Speed & Optimization',
-      desc: lang === 'fr' 
-        ? 'Optimisation des bundles, élimination du code mort et configuration de caches serveur performants.'
-        : 'Bundle optimization, dead-code purging, and high-performance server side cache configurations.'
+      title: t.aboutHl2Title,
+      desc: t.aboutHl2Desc
     },
     {
-      title: lang === 'fr' ? 'Sécurité par Défaut' : 'Secured by Design',
-      desc: lang === 'fr' 
-        ? 'Validation rigoureuse des entrées utilisateur, hachage cryptographique et protection des clés API.'
-        : 'Rigorous user input validation, cryptographic password hashing, and absolute API key hiding.'
+      title: t.aboutHl3Title,
+      desc: t.aboutHl3Desc
     }
   ];
 
@@ -116,7 +104,7 @@ export default function About() {
       <section className="space-y-4 mb-12">
         <div className="flex items-center space-x-2 text-copper-400 text-xs font-mono tracking-widest uppercase">
           <span className="w-3 h-px bg-copper-400" />
-          <span>{lang === 'fr' ? 'Identité & Philosophie' : 'Identity & Vision'}</span>
+          <span>{t.aboutIdentityVision}</span>
         </div>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display tracking-tight text-white">
           {t.aboutTitle}
@@ -129,27 +117,20 @@ export default function About() {
         <div className="md:col-span-2 space-y-6">
           <p className="text-zinc-300 leading-relaxed text-base">
             {profile 
-              ? (lang === 'fr' ? profile.bioFr : profile.bioEn)
-              : (lang === 'fr' 
-                ? 'Je m’appelle Grégoire BATCHO, développeur web passionné de conception logicielle. À la frontière entre l’ingénierie rigoureuse de systèmes et le minimalisme esthétique, j’aime édifier des applications web robustes, sûres et extrêmement rapides.'
-                : 'My name is Grégoire BATCHO, a web developer deeply passionate about software design. Positioning myself between rigorous system engineering and clean design execution, I craft robust, safe, and lightning-fast web applications.')
+              ? (lang === 'fr' ? (profile.bioFr || profile.bioEn) : (profile.bioEn || profile.bioFr))
+              : t.aboutBioFallback
             }
           </p>
 
           <p className="text-zinc-400 leading-relaxed">
             {profile
-              ? (lang === 'fr' ? profile.aboutBioFr : profile.aboutBioEn)
-              : (lang === 'fr'
-                ? 'Issu d’un cursus technique axé sur le développement full stack, j’ai appris à maîtriser les rouages complexes des bases de données MongoDB / PostgreSQL tout en concevant des applications interactives élégamment rythmées avec React. Je suis convaincu que la clarté du code et l’intuitivité d’un produit sont les clés pour concevoir des applications web durables et appréciées.'
-                : 'Drawing from a strict technical background around full-stack development, I master complex operational routines in MongoDB / PostgreSQL databases while engineering fluid user experiences in React. I strictly believe clean coding matches direct product utility to develop lasting digital tools.')
+              ? (lang === 'fr' ? (profile.aboutBioFr || profile.aboutBioEn) : (profile.aboutBioEn || profile.aboutBioFr))
+              : t.aboutBioNarrativeFallback
             }
           </p>
 
           <div className="border-l-2 border-copper-500 pl-4 py-1 italic text-zinc-300 font-display">
-            {lang === 'fr'
-              ? '« Un design d’interface épuré est inutile s’il n’est pas propulsé par une base de données véloce et sécurisée. »'
-              : '“An elegant user interface means nothing without a swift, secure background database infrastructure powering it.”'
-            }
+            {t.aboutQuote}
           </div>
         </div>
 
@@ -157,20 +138,20 @@ export default function About() {
         <div className="space-y-4">
           <div className="glass-panel p-6 rounded-2xl space-y-4 border border-white/5">
             <h4 className="font-display font-medium text-white tracking-wide text-xs uppercase font-mono text-copper-400">
-              {lang === 'fr' ? 'Aperçu Rapide' : 'Quick Statistics'}
+              {t.aboutQuickStatsTitle}
             </h4>
             <div className="space-y-3 font-mono text-xs font-medium">
               <div className="flex justify-between border-b border-white/5 pb-2">
-                <span className="text-zinc-500">{lang === 'fr' ? 'Rôle' : 'Role'}</span>
-                <span className="text-zinc-300 font-semibold">{profile ? (lang === 'fr' ? profile.titleFr : profile.titleEn) : (lang === 'fr' ? 'Développeur Junior' : 'Junior Developer')}</span>
+                <span className="text-zinc-500">{t.aboutRoleLabel}</span>
+                <span className="text-zinc-300 font-semibold">{profile ? (lang === 'fr' ? (profile.titleFr || profile.titleEn) : (profile.titleEn || profile.titleFr)) : t.aboutJuniorRoleFallback}</span>
               </div>
               <div className="flex justify-between border-b border-white/5 pb-2">
-                <span className="text-zinc-500">{lang === 'fr' ? 'Localisation' : 'Base'}</span>
-                <span className="text-zinc-300 font-semibold">Abidjan, Côte d'Ivoire</span>
+                <span className="text-zinc-500">{t.aboutBaseLabel}</span>
+                <span className="text-zinc-300 font-semibold">{lang === 'fr' ? "Abidjan, Côte d'Ivoire" : "Abidjan, Côte d'Ivoire"}</span>
               </div>
               <div className="flex justify-between border-b border-white/5 pb-2">
-                <span className="text-zinc-500">Freelance</span>
-                <span className="text-zinc-300 font-semibold">{lang === 'fr' ? 'Disponible' : 'Open'}</span>
+                <span className="text-zinc-500">{t.aboutStatusLabel}</span>
+                <span className="text-zinc-300 font-semibold">{t.aboutStatusValue}</span>
               </div>
               {profile?.phone && (
                 <div className="flex justify-between border-b border-white/5 pb-2">
@@ -212,7 +193,7 @@ export default function About() {
               {t.techStackTitle}
             </h3>
             <p className="text-xs text-zinc-500 mt-1">
-              {lang === 'fr' ? 'Cliquez pour explorer mon niveau d’aisance sur chaque écosystème.' : 'Select filters to explore specific platform stacks.'}
+              {t.aboutInteractiveTip}
             </p>
           </div>
 
