@@ -2,7 +2,7 @@
   "user": {
     "id": "admin-id",
     "name": "Grégoire BATCHO",
-    "email": "batchogregoire81@gmail.com",
+    "email": "batchogregoire0@gmail.com",
     "role": "admin",
     "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&h=400&q=80"
   },
@@ -21,7 +21,7 @@
       "github": "https://github.com/DOUTCHO",
       "linkedin": "https://linkedin.com/in/gregoirebatcho",
       "twitter": "https://twitter.com/gregoire_batcho",
-      "email": "batchogregoire81@gmail.com"
+      "email": "batchogregoire0@gmail.com"
     },
     "title": "Full Stack Developer Junior"
   },
@@ -167,12 +167,7 @@
       "images": [
         "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1200&h=675&q=80"
       ],
-      "technologies": [
-        "React Native",
-        "TypeScript",
-        "Node.js",
-        "Tailwind CSS"
-      ],
+      "technologies": ["React Native", "TypeScript", "Node.js", "Tailwind CSS"],
       "category": "mobile",
       "featured": true,
       "githubUrl": "",
@@ -186,15 +181,8 @@
       "slug": "azertyuiop",
       "shortDescription": "azertyuio",
       "fullDescription": "azertyuiop",
-      "images": [
-        ""
-      ],
-      "technologies": [
-        "azer",
-        "zerty",
-        "sdfghj",
-        "fghjk"
-      ],
+      "images": [""],
+      "technologies": ["azer", "zerty", "sdfghj", "fghjk"],
       "category": "frontend",
       "featured": false,
       "githubUrl": "",

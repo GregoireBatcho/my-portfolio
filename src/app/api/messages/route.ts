@@ -1,12 +1,15 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/server/db';
-import { verifyRequest } from '../auth/helper';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/server/db";
+import { verifyRequest } from "../auth/helper";
 
 export async function GET(req: NextRequest) {
   if (!verifyRequest(req)) {
-    return NextResponse.json({ error: 'Unauthorized: Admin authentication token required' }, { status: 401 });
+    return NextResponse.json(
+      { error: "Unauthorized: Admin authentication token required" },
+      { status: 401 },
+    );
   }
   try {
     const messages = await db.getMessages();
@@ -20,7 +23,10 @@ export async function POST(req: NextRequest) {
   try {
     const { name, email, subject, message } = await req.json();
     if (!name || !email || !subject || !message) {
-      return NextResponse.json({ error: 'All fields are strictly required.' }, { status: 400 });
+      return NextResponse.json(
+        { error: "All fields are strictly required." },
+        { status: 400 },
+      );
     }
 
     const savedMsg = await db.addMessage({ name, email, subject, message });
@@ -29,16 +35,18 @@ export async function POST(req: NextRequest) {
     const resendKey = process.env.RESEND_API_KEY;
     if (resendKey) {
       try {
-        console.log(`[Resend Alert Next.js] Attempting real mail dispatch for ${name}...`);
-        const resendResponse = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
+        console.log(
+          `[Resend Alert Next.js] Attempting real mail dispatch for ${name}...`,
+        );
+        const resendResponse = await fetch("https://api.resend.com/emails", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${resendKey}`
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${resendKey}`,
           },
           body: JSON.stringify({
-            from: 'Portfolio Contact <onboarding@resend.dev>',
-            to: 'batchogregoire81@gmail.com',
+            from: "Portfolio Contact <onboarding@resend.dev>",
+            to: "batchogregoire0@gmail.com",
             subject: `[Contact Portfolio] ${subject} - from ${name}`,
             html: `
               <div style="font-family: sans-serif; max-width: 600px; padding: 24px; background: #0c0a09; color: #f5f5f4; border-radius: 12px; border: 1px solid #d97736;">
@@ -51,18 +59,21 @@ export async function POST(req: NextRequest) {
                 </div>
                 <p style="font-size: 11px; color: #a8a29e; margin-bottom: 0;">Submitted via portfolio-db.json dynamic tracking engine.</p>
               </div>
-            `
-          })
+            `,
+          }),
         });
         const resendJson = await resendResponse.json();
-        console.log(`[Resend OK Next.js] Email dispatched correctly:`, resendJson);
+        console.log(
+          `[Resend OK Next.js] Email dispatched correctly:`,
+          resendJson,
+        );
       } catch (mailError) {
         console.error("Resend delivery failed but data saved:", mailError);
       }
     } else {
       console.log("=========================================");
       console.log(`[SIMULATED EMAIL NOTIFICATION VIA RESEND (NEXT.JS)]`);
-      console.log(`To: batchogregoire81@gmail.com`);
+      console.log(`To: batchogregoire0@gmail.com`);
       console.log(`From: portfolio-contact@gregoire.net`);
       console.log(`Subject: [Contact Portfolio] ${subject} - from ${name}`);
       console.log(`Body: ${message}`);
