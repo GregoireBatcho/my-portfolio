@@ -1,0 +1,11 @@
+{
+  "/api/experiences/route": "app/api/experiences/route.js",
+  "/api/messages/route": "app/api/messages/route.js",
+  "/api/profile/route": "app/api/profile/route.js",
+  "/api/projects/[id]/route": "app/api/projects/[id]/route.js",
+  "/api/projects/route": "app/api/projects/route.js",
+  "/api/seo/route": "app/api/seo/route.js",
+  "/api/softskills/route": "app/api/softskills/route.js",
+  "/api/technologies/route": "app/api/technologies/route.js",
+  "/page": "app/page.js"
+}

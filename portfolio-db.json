@@ -1,0 +1,271 @@
+{
+  "user": {
+    "id": "admin-id",
+    "name": "Grégoire BATCHO",
+    "email": "batchogregoire81@gmail.com",
+    "role": "admin",
+    "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&h=400&q=80"
+  },
+  "profile": {
+    "fullname": "Grégoire BATCHO",
+    "title": "Full Stack Developer Junior",
+    "biography": "Enthusiastic and detail-oriented Junior Full Stack Developer with a passion for designing pixel-perfect client interfaces and optimized backend systems. Specializing in Node.js, React, TypeScript, and modern database architectures. I thrive on solving complex technical constraints and writing highly structured, maintainable code.",
+    "location": "Paris, France",
+    "availability": "available",
+    "profilePicture": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&h=400&q=80",
+    "cvUrl": "/api/cv/download",
+    "socials": {
+      "github": "https://github.com/gregoire-batcho",
+      "linkedin": "https://linkedin.com/in/gregoire-batcho",
+      "twitter": "https://twitter.com/gregoire_batcho",
+      "email": "batchogregoire81@gmail.com"
+    }
+  },
+  "technologies": [
+    {
+      "id": "tech-react",
+      "name": "React 19 / Next.js",
+      "category": "frontend",
+      "proficiency": 90,
+      "yearsExperience": 2
+    },
+    {
+      "id": "tech-ts",
+      "name": "TypeScript",
+      "category": "frontend",
+      "proficiency": 85,
+      "yearsExperience": 2
+    },
+    {
+      "id": "tech-tailwind",
+      "name": "Tailwind CSS",
+      "category": "frontend",
+      "proficiency": 95,
+      "yearsExperience": 2
+    },
+    {
+      "id": "tech-motion",
+      "name": "Framer Motion",
+      "category": "frontend",
+      "proficiency": 80,
+      "yearsExperience": 1
+    },
+    {
+      "id": "tech-node",
+      "name": "Node.js / Express",
+      "category": "backend",
+      "proficiency": 85,
+      "yearsExperience": 2
+    },
+    {
+      "id": "tech-nest",
+      "name": "NestJS",
+      "category": "backend",
+      "proficiency": 70,
+      "yearsExperience": 1
+    },
+    {
+      "id": "tech-graphql",
+      "name": "GraphQL & REST APIs",
+      "category": "backend",
+      "proficiency": 80,
+      "yearsExperience": 2
+    },
+    {
+      "id": "tech-mongo",
+      "name": "MongoDB / Mongoose",
+      "category": "database",
+      "proficiency": 85,
+      "yearsExperience": 2
+    },
+    {
+      "id": "tech-postgres",
+      "name": "PostgreSQL / Prisma",
+      "category": "database",
+      "proficiency": 80,
+      "yearsExperience": 1
+    },
+    {
+      "id": "tech-rn",
+      "name": "React Native",
+      "category": "mobile",
+      "proficiency": 75,
+      "yearsExperience": 15
+    },
+    {
+      "id": "tech-docker",
+      "name": "Docker",
+      "category": "devops",
+      "proficiency": 75,
+      "yearsExperience": 1
+    },
+    {
+      "id": "tech-cicd",
+      "name": "GitHub Actions",
+      "category": "devops",
+      "proficiency": 70,
+      "yearsExperience": 1
+    },
+    {
+      "id": "tech-cloudrun",
+      "name": "GCP / Cloud Run",
+      "category": "devops",
+      "proficiency": 75,
+      "yearsExperience": 1
+    },
+    {
+      "id": "tech-git",
+      "name": "Git & Version Control",
+      "category": "tools",
+      "proficiency": 90,
+      "yearsExperience": 3
+    },
+    {
+      "id": "tech-figma",
+      "name": "Figma (UI Design)",
+      "category": "tools",
+      "proficiency": 80,
+      "yearsExperience": 2
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-nova",
+      "title": "Nova CRM & Analytics Suite",
+      "slug": "nova-crm-analytics-suite",
+      "shortDescription": "A luxurious B2B SaaS platform featuring beautiful dark glassmorphic widgets, interactive real-time telemetry, and automated invoice delivery.",
+      "fullDescription": "Nova is an enterprise-oriented customer relationship and server telemetry platform. Engineered utilizing a robust full-stack architecture, it addresses modern performance requirements with server-rendered layouts and fluid client transitions. Key challenges resolved included the synchronization of live metric charting with low bandwidth, solved by custom D3 layout pooling and virtual caching.",
+      "images": [
+        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&h=675&q=80",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&h=675&q=80"
+      ],
+      "technologies": [
+        "React",
+        "Express",
+        "Node.js",
+        "MongoDB",
+        "Tailwind CSS",
+        "Recharts"
+      ],
+      "category": "saas",
+      "featured": true,
+      "githubUrl": "https://github.com/gregoire-batcho/nova-crm",
+      "liveUrl": "https://nova-crm.example.com",
+      "startDate": "2025-10-01",
+      "endDate": "2026-02-15"
+    },
+    {
+      "id": "proj-titan",
+      "title": "Titan Cloud API Security Gateway",
+      "slug": "titan-cloud-api-gateway",
+      "shortDescription": "High-performance edge reverse proxy and authentication gateway designed for robust container environments.",
+      "fullDescription": "Titan provides secure, extremely responsive token verification, rate-limiting, and metric logging at the edge of dockerized services. Built to replace expensive enterprise proxies, it supports millions of daily requests with a memory footprint under 30MB. Includes a beautiful developer dashboard displaying active traffic, IP blocking controls, and automated rate profiles.",
+      "images": [
+        "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&h=675&q=80",
+        "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&h=675&q=80"
+      ],
+      "technologies": [
+        "TypeScript",
+        "Node.js",
+        "Redis",
+        "Docker",
+        "Express",
+        "Recharts"
+      ],
+      "category": "opensource",
+      "featured": true,
+      "githubUrl": "https://github.com/gregoire-batcho/titan-gateway",
+      "liveUrl": "https://titan-gateway.example.com",
+      "startDate": "2025-05-10",
+      "endDate": "2025-09-20"
+    },
+    {
+      "id": "proj-aether",
+      "title": "Aether localized mobile calendar",
+      "slug": "aether-localized-mobile-calendar",
+      "shortDescription": "1Minimalist cross-platform calendar application showcasing premium iOS-style gesture layouts and local push alarms.",
+      "fullDescription": "2Aether is a gorgeous, tactile mobile application centering layout harmony and gesture control. Configured using React Native and calibrated for extreme visual consistency, it lets freelancers map working calendars, draft invoicing logs, and toggle instant alerts.",
+      "images": [
+        "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1200&h=675&q=80"
+      ],
+      "technologies": [
+        "React Native",
+        "TypeScript",
+        "Node.js",
+        "Tailwind CSS"
+      ],
+      "category": "mobile",
+      "featured": false,
+      "githubUrl": "https://github.com/gregoire-batcho/aether-app",
+      "liveUrl": "https://aether-app.example.com",
+      "startDate": "2024-11-15",
+      "endDate": "2025-04-01"
+    }
+  ],
+  "experiences": [
+    {
+      "id": "exp-1",
+      "company": "Apex Digital Solutions",
+      "role": "Junior Full Stack Developer",
+      "description": "Pioneered backend API endpoints handling transactional logistics. Refactored client dashboard using React 19 and Tailwind CSS, speeding up interactive load speeds by 40%. Implemented responsive mobile layouts and synchronized state pipelines.",
+      "technologies": [
+        "React",
+        "Node.js",
+        "Express",
+        "MongoDB",
+        "Tailwind CSS"
+      ],
+      "startDate": "2025-06-01"
+    },
+    {
+      "id": "exp-2",
+      "company": "Synapse Labs",
+      "role": "Full Stack Developer Intern",
+      "description": "Assisted in the design and prototyping of database schemas via Mongoose models. Crafted automated testing scripts running Mocha/Chai, raising code deployment reliability to 98.5%. Built localized landing layouts and verified cross-device accessibility benchmarks.",
+      "technologies": [
+        "JavaScript",
+        "Express",
+        "MongoDB",
+        "Git",
+        "Figma"
+      ],
+      "startDate": "2024-09-01",
+      "endDate": "2025-04-30"
+    }
+  ],
+  "softSkills": [
+    {
+      "id": "soft-1",
+      "title": "Rigor & Precision",
+      "description": "Committed to robust type safety, comprehensive specification compliance, and neat pixel alignment across responsive viewports.",
+      "icon": "Shield"
+    },
+    {
+      "id": "soft-2",
+      "title": "Empathetic Communication",
+      "description": "Thrive inside collaborative tech partnerships. Skilled at matching highly complex engineering choices to human-friendly summaries.",
+      "icon": "MessageSquareCode"
+    },
+    {
+      "id": "soft-3",
+      "title": "Creative Problem Solving",
+      "description": "Equipped with a deep learning agility to isolate bottle-necks, model data schemes, and design lightweight standalone utilities.",
+      "icon": "Cpu"
+    }
+  ],
+  "messages": [],
+  "seoSettings": {
+    "siteTitle": "Grégoire BATCHO | Junior Full Stack Developer",
+    "metaDescription": "Professional Full-Stack Developer Portfolio for Grégoire BATCHO. High-end dark theme design showcasing interactive works, timeline, and custom admin controller.",
+    "keywords": [
+      "Grégoire Batcho",
+      "Batcho",
+      "Full Stack Developer",
+      "Developer",
+      "Paris Developer",
+      "React Portfolio",
+      "Express",
+      "MongoDB"
+    ]
+  }
+}
