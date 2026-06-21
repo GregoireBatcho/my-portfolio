@@ -2,22 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../lib/i18n';
 import { 
   Lock, LayoutDashboard, UserCheck2, Rocket, Briefcase, Settings2, Code, Mail, Trash2, 
-  CheckCircle, Plus, Edit2, Check, X, ShieldAlert, LogOut, ChevronRight, RefreshCw, Sparkles
+  CheckCircle, Plus, Edit2, Check, X, ShieldAlert, LogOut, ChevronRight, RefreshCw, Sparkles, Tags
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Project, Experience, Technology, SoftSkill, ContactMessage, Profile, SEOSettings } from '../types';
+import { Project, Experience, Technology, SoftSkill, ContactMessage, Profile, SEOSettings, ProjectCategory } from '../types';
 
-export default function AdminPanel() {
+interface AdminPanelProps {
+  onUpdate?: () => void;
+}
+
+export default function AdminPanel({ onUpdate }: AdminPanelProps) {
   const { t } = useLanguage();
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('gregoire-admin-token'));
+  const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<'stats' | 'profile' | 'projects' | 'tech' | 'exp' | 'messages' | 'seo'>('stats');
+  const [activeSubTab, setActiveSubTab] = useState<'stats' | 'profile' | 'projects' | 'categories' | 'tech' | 'exp' | 'messages' | 'seo'>('stats');
 
   // Database lists
   const [profile, setProfile] = useState<Profile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [categories, setCategories] = useState<ProjectCategory[]>([]);
   const [technologies, setTechnologies] = useState<Technology[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
@@ -26,9 +31,17 @@ export default function AdminPanel() {
   // Forms editing states
   const [editingTech, setEditingTech] = useState<Partial<Technology> | null>(null);
   const [editingProj, setEditingProj] = useState<Partial<Project> | null>(null);
+  const [editingCat, setEditingCat] = useState<Partial<ProjectCategory> | null>(null);
   const [editingExp, setEditingExp] = useState<Partial<Experience> | null>(null);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [editingSeo, setEditingSeo] = useState<SEOSettings | null>(null);
+
+  useEffect(() => {
+    try {
+      const savedToken = localStorage.getItem('gregoire-admin-token');
+      if (savedToken) setToken(savedToken);
+    } catch (_) {}
+  }, []);
 
   const [uiFeedback, setUiFeedback] = useState({ type: 'success', text: '' });
   const [fileUploading, setFileUploading] = useState(false);
@@ -97,12 +110,14 @@ export default function AdminPanel() {
     try {
       const pRes = await fetch('/api/profile');
       const projRes = await fetch('/api/projects');
+      const catRes = await fetch('/api/categories');
       const techRes = await fetch('/api/technologies');
       const expRes = await fetch('/api/experiences');
       const seoRes = await fetch('/api/seo');
 
       if (pRes.ok) setProfile(await pRes.json());
       if (projRes.ok) setProjects(await projRes.json());
+      if (catRes.ok) setCategories(await catRes.json());
       if (techRes.ok) setTechnologies(await techRes.json());
       if (expRes.ok) setExperiences(await expRes.json());
       if (seoRes.ok) setSeo(await seoRes.json());
@@ -111,6 +126,9 @@ export default function AdminPanel() {
       const headers = { 'Authorization': `Bearer ${token}` };
       const mRes = await fetch('/api/messages', { headers });
       if (mRes.ok) setMessages(await mRes.json());
+
+      // Trigger prop update to force parent refresh
+      onUpdate?.();
     } catch (_) {
       showFeedback('Failed to synchronize database state.', 'error');
     } finally {
@@ -302,6 +320,53 @@ export default function AdminPanel() {
       }
     } catch (_) {
       showFeedback('Project deletion failed.', 'error');
+    }
+  };
+
+  // Category actions
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCat) return;
+    try {
+      const isNew = !editingCat.id;
+      const url = '/api/categories';
+      const method = isNew ? 'POST' : 'PUT';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(editingCat)
+      });
+
+      if (response.ok) {
+        showFeedback(t('common.success'));
+        setEditingCat(null);
+        fetchAdminData();
+      } else {
+        const errorData = await response.json();
+        showFeedback(errorData.error || 'Failed to save category.', 'error');
+      }
+    } catch (_) {
+      showFeedback('Category saving failed.', 'error');
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this category? All projects in this category will need update.')) return;
+    try {
+      const response = await fetch(`/api/categories?id=${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        showFeedback('Category deleted successfully.');
+        fetchAdminData();
+      }
+    } catch (_) {
+      showFeedback('Category deletion failed.', 'error');
     }
   };
 
@@ -504,6 +569,7 @@ export default function AdminPanel() {
               { id: 'stats', label: t('admin.menuOverview'), icon: LayoutDashboard },
               { id: 'profile', label: t('admin.menuBiography'), icon: UserCheck2 },
               { id: 'projects', label: t('admin.menuProjects'), icon: Rocket },
+              { id: 'categories', label: t('admin.menuCategories'), icon: Tags },
               { id: 'tech', label: t('admin.menuTechnologies'), icon: Code },
               { id: 'exp', label: t('admin.menuTimeline'), icon: Briefcase },
               { id: 'messages', label: t('admin.menuInbox'), icon: Mail, badge: unreadCount },
@@ -519,6 +585,7 @@ export default function AdminPanel() {
                     setEditingExp(null);
                     setEditingProj(null);
                     setEditingTech(null);
+                    setEditingCat(null);
                     setEditingProfile(null);
                     setEditingSeo(null);
                   }}
@@ -618,7 +685,7 @@ export default function AdminPanel() {
 
                 {!editingProfile ? (
                   <div className="space-y-6 text-xs text-stone-700 dark:text-zinc-300">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-stone-50 dark:bg-neutral-900/10 p-5 rounded-2xl border border-stone-200 dark:border-zinc-900 shadow-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-stone-50/50 dark:bg-neutral-900/20 p-5 rounded-2xl border border-stone-200 dark:border-zinc-800 shadow-sm luxury-glow">
                       <div>
                         <span className="text-stone-400 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">Full Display Name</span>
                         <p className="text-stone-900 dark:text-white text-sm font-semibold">{profile.fullname}</p>
@@ -639,34 +706,34 @@ export default function AdminPanel() {
 
                     <div>
                       <span className="text-stone-500 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-2">{t('admin.bioSummary')}</span>
-                      <p className="bg-stone-50 dark:bg-neutral-950 p-5 rounded-xl border border-stone-200 dark:border-zinc-900 text-stone-800 dark:text-zinc-350 leading-relaxed font-sans text-xs shadow-sm">
+                      <p className="bg-stone-50/50 dark:bg-neutral-900/20 p-5 rounded-xl border border-stone-200 dark:border-zinc-800 text-stone-800 dark:text-zinc-350 leading-relaxed font-sans text-xs shadow-sm luxury-glow">
                         {profile.biography}
                       </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
+                      <div className="p-4 bg-stone-50/50 dark:bg-neutral-900/20 rounded-xl border border-stone-200 dark:border-zinc-800 shadow-xs">
                         <span className="text-stone-500 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">{t('admin.bioGithub')}</span>
                         <p className="text-stone-700 dark:text-zinc-300 font-mono truncate">{profile.socials.github}</p>
                       </div>
-                      <div>
+                      <div className="p-4 bg-stone-50/50 dark:bg-neutral-900/20 rounded-xl border border-stone-200 dark:border-zinc-800 shadow-xs">
                         <span className="text-stone-500 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">{t('admin.bioLinkedin')}</span>
                         <p className="text-stone-700 dark:text-zinc-300 font-mono truncate">{profile.socials.linkedin}</p>
                       </div>
-                      <div className="mt-2">
+                      <div className="p-4 bg-stone-50/50 dark:bg-neutral-900/20 rounded-xl border border-stone-200 dark:border-zinc-800 shadow-xs">
                         <span className="text-stone-500 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">{t('admin.bioPicture')}</span>
-                        <div className="flex items-center gap-3 mt-1 bg-stone-50 dark:bg-zinc-950/40 p-2.5 rounded-lg border border-stone-200 dark:border-zinc-900 shadow-sm">
+                        <div className="flex items-center gap-3 mt-1 bg-stone-50 dark:bg-zinc-950/40 p-2.5 rounded-lg border border-stone-200 dark:border-zinc-850 shadow-sm">
                           {profile.profilePicture && (
                             <img src={profile.profilePicture} alt="Avatar profile" className="w-10 h-10 rounded-lg object-cover border border-stone-200 dark:border-zinc-800" />
                           )}
                           <p className="text-stone-700 dark:text-zinc-300 font-mono truncate text-[11px] flex-1">{profile.profilePicture}</p>
                         </div>
                       </div>
-                      <div className="mt-2">
-                        <span className="text-stone-500 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">
+                      <div className="p-4 bg-stone-50/50 dark:bg-neutral-900/20 rounded-xl border border-stone-200 dark:border-zinc-800 shadow-xs">
+                        <span className="text-stone-500 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block">
                           {t('admin.bioCv')}
                         </span>
-                        <div className="flex flex-col gap-2 mt-1 bg-stone-50 dark:bg-zinc-950/40 p-3 rounded-lg border border-stone-200 dark:border-zinc-900 min-h-[62px] shadow-sm">
+                        <div className="flex flex-col gap-2 mt-1 bg-stone-50 dark:bg-zinc-950/40 p-3 rounded-lg border border-stone-200 dark:border-zinc-850 min-h-[62px] shadow-sm">
                           <div className="flex items-center justify-between gap-3">
                             <p className="text-[#d97736] font-mono truncate text-xs font-semibold flex-1">
                               {profile.cvUrl ? (
@@ -709,7 +776,7 @@ export default function AdminPanel() {
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={handleSaveProfile} className="space-y-5">
+                  <form onSubmit={handleSaveProfile} className="bg-stone-50/50 dark:bg-neutral-900/20 rounded-2xl border border-stone-200 dark:border-zinc-800 p-6 shadow-sm luxury-glow space-y-5 text-xs text-stone-700 dark:text-zinc-300">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Fullname</label>
@@ -803,18 +870,6 @@ export default function AdminPanel() {
                           className="w-full bg-white dark:bg-neutral-950 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#d97736]/75"
                         />
                       </div>
-                      <div>
-                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">CV Direct Access URI</label>
-                        <input
-                          type="text"
-                          value={editingProfile.cvUrl || ''}
-                          onChange={(e) => setEditingProfile({ 
-                            ...editingProfile, 
-                            cvUrl: e.target.value
-                          })}
-                          className="w-full bg-white dark:bg-neutral-950 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-[#d97736]/75"
-                        />
-                      </div>
                     </div>
 
                     <div className="flex justify-end gap-3.5 pt-4 border-t border-stone-200 dark:border-zinc-900">
@@ -842,8 +897,8 @@ export default function AdminPanel() {
                 ========================================= */}
             {activeSubTab === 'projects' && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between mb-4 border-b border-zinc-850 pb-4">
-                  <h3 className="text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
+                <div className="flex items-center justify-between mb-4 border-b border-stone-200 dark:border-zinc-850 pb-4">
+                  <h3 className="text-stone-900 dark:text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
                     <Rocket className="w-5 h-5 text-[#d97736]" />
                     Projects CRUD Manager
                   </h3>
@@ -863,23 +918,27 @@ export default function AdminPanel() {
                 </div>
 
                 {!editingProj ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs text-zinc-300">
+                  <div className="overflow-x-auto bg-stone-50/50 dark:bg-neutral-900/20 rounded-2xl border border-stone-200 dark:border-zinc-800 p-4 luxury-glow shadow-sm text-stone-700 dark:text-zinc-300">
+                    <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr className="border-b border-zinc-900 text-zinc-500 uppercase tracking-widest text-[9px] font-mono select-none">
+                        <tr className="border-b border-stone-200 dark:border-zinc-800 text-stone-500 dark:text-zinc-500 uppercase tracking-widest text-[9px] font-mono select-none">
                           <th className="py-3 px-4">Title</th>
                           <th className="py-3 px-4">Category</th>
                           <th className="py-3 px-4">Featured</th>
                           <th className="py-3 px-4 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-950/40">
+                      <tbody className="divide-y divide-stone-200/40 dark:divide-zinc-850/40">
                         {projects.map((proj) => (
-                          <tr key={proj.id} className="hover:bg-neutral-900/40 transition-colors">
-                            <td className="py-4 px-4 font-semibold text-white">{proj.title}</td>
-                            <td className="py-4 px-4 font-mono capitalize text-zinc-400">{proj.category}</td>
+                          <tr key={proj.id} className="hover:bg-stone-105/50 dark:hover:bg-neutral-900/40 transition-colors">
+                            <td className="py-4 px-4 font-semibold text-stone-900 dark:text-white">{proj.title}</td>
+                            <td className="py-4 px-4 font-mono capitalize text-stone-605 dark:text-zinc-400">
+                              {categories.find((c) => c.id === proj.category)
+                                ? categories.find((c) => c.id === proj.category)?.nameEn
+                                : proj.category}
+                            </td>
                             <td className="py-4 px-4">
-                              <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold leading-none ${proj.featured ? 'bg-[#d97736]/10 text-[#d97736] border border-[#d97736]/20' : 'bg-zinc-900 text-zinc-500'}`}>
+                              <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold leading-none ${proj.featured ? 'bg-[#d97736]/10 text-[#d97736] border border-[#d97736]/20' : 'bg-stone-200 dark:bg-zinc-850 text-stone-600 dark:text-zinc-500'}`}>
                                 {proj.featured ? 'Featured' : 'Standard'}
                               </span>
                             </td>
@@ -890,13 +949,13 @@ export default function AdminPanel() {
                                   technologies: proj.technologies.join(', ') as any,
                                   images: proj.images.join(', ') as any
                                 })}
-                                className="p-1 px-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md font-semibold font-mono text-[10px] transition-all cursor-pointer"
+                                className="p-1 px-2.5 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-stone-850 dark:text-white border border-stone-200 dark:border-zinc-700 rounded-md font-semibold font-mono text-[10px] transition-all cursor-pointer"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteProject(proj.id)}
-                                className="p-1 px-2 text-red-500 bg-red-950/10 hover:bg-red-950/20 rounded-md font-mono text-[10px] transition-all cursor-pointer"
+                                className="p-1 px-2 text-red-600 dark:text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-md font-mono text-[10px] transition-all cursor-pointer"
                               >
                                 Delete
                               </button>
@@ -907,10 +966,10 @@ export default function AdminPanel() {
                     </table>
                   </div>
                 ) : (
-                  <form onSubmit={handleSaveProject} className="space-y-4">
+                  <form onSubmit={handleSaveProject} className="bg-stone-50/50 dark:bg-neutral-900/20 rounded-2xl border border-stone-200 dark:border-zinc-800 p-6 shadow-sm luxury-glow space-y-4 text-xs text-stone-700 dark:text-zinc-350">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Project Title</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Project Title</label>
                         <input
                           type="text"
                           value={editingProj.title}
@@ -920,17 +979,17 @@ export default function AdminPanel() {
                             setEditingProj({ ...editingProj, title: val, slug });
                           }}
                           placeholder="e.g. Nova Platform"
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Dynamic Safe Slug</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Dynamic Safe Slug</label>
                         <input
                           type="text"
                           value={editingProj.slug}
                           onChange={(e) => setEditingProj({ ...editingProj, slug: e.target.value })}
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75 font-mono"
                           required
                         />
                       </div>
@@ -938,33 +997,35 @@ export default function AdminPanel() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Project Category</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Project Category</label>
                         <select
                           value={editingProj.category}
-                          onChange={(e) => setEditingProj({ ...editingProj, category: e.target.value as any })}
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-[#d97736]"
+                          onChange={(e) => setEditingProj({ ...editingProj, category: e.target.value })}
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-[#d97736]/75"
                         >
-                          <option value="web">Web App</option>
-                          <option value="mobile">Mobile Application</option>
-                          <option value="saas">SaaS Solution</option>
-                          <option value="opensource">Open Source System</option>
+                          <option value="">-- Choose Category --</option>
+                          {categories.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.nameEn} / {c.nameFr}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Start Date</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Start Date</label>
                         <input
                           type="date"
                           value={editingProj.startDate}
                           onChange={(e) => setEditingProj({ ...editingProj, startDate: e.target.value })}
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
                         />
                       </div>
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Featured Flag</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Featured Flag</label>
                         <select
                           value={editingProj.featured ? 'true' : 'false'}
                           onChange={(e) => setEditingProj({ ...editingProj, featured: e.target.value === 'true' })}
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-[#d97736]/75"
                         >
                           <option value="false">Standard / Default</option>
                           <option value="true">Featured Product</option>
@@ -973,80 +1034,206 @@ export default function AdminPanel() {
                     </div>
 
                     <div>
-                      <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Short Preview Statement</label>
+                      <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Short Preview Statement</label>
                       <input
                         type="text"
                         value={editingProj.shortDescription}
                         onChange={(e) => setEditingProj({ ...editingProj, shortDescription: e.target.value })}
                         placeholder="Luxurious suite featuring real-time insights..."
-                        className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Complex Complete Description</label>
+                      <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Complex Complete Description</label>
                       <textarea
                         value={editingProj.fullDescription}
                         onChange={(e) => setEditingProj({ ...editingProj, fullDescription: e.target.value })}
                         rows={4}
                         placeholder="Detailed technical overview and challenges resolved..."
-                        className="w-full bg-neutral-950 border border-zinc-800 rounded-lg p-3 text-xs text-white focus:outline-[#d97736] resize-none"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg p-3 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75 resize-none"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Project Images (Comma lists of URLs)</label>
+                      <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Project Images (Comma lists of URLs)</label>
                       <input
                         type="text"
                         value={editingProj.images as any}
                         onChange={(e) => setEditingProj({ ...editingProj, images: e.target.value as any })}
                         placeholder="e.g. https://image1.png, https://image2.jpg"
-                        className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Technologies tags (Comma lists of names)</label>
+                      <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Technologies tags (Comma lists of names)</label>
                       <input
                         type="text"
                         value={editingProj.technologies as any}
                         onChange={(e) => setEditingProj({ ...editingProj, technologies: e.target.value as any })}
                         placeholder="e.g. React, Node.js, Express, MongoDB, D3"
-                        className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
                         required
                       />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">GitHub Repo URL</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">GitHub Repo URL</label>
                         <input
                           type="url"
                           value={editingProj.githubUrl}
                           onChange={(e) => setEditingProj({ ...editingProj, githubUrl: e.target.value })}
                           placeholder="https://github.com/..."
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
                         />
                       </div>
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Live Applications Deploy URL</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Live Applications Deploy URL</label>
                         <input
                           type="url"
                           value={editingProj.liveUrl}
                           onChange={(e) => setEditingProj({ ...editingProj, liveUrl: e.target.value })}
                           placeholder="https://..."
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
                         />
                       </div>
                     </div>
 
-                    <div className="flex justify-end gap-3.5 pt-4 border-t border-zinc-900">
+                    <div className="flex justify-end gap-3.5 pt-4 border-t border-stone-200 dark:border-zinc-800">
                       <button
                         type="button"
                         onClick={() => setEditingProj(null)}
-                        className="px-4 py-2 border border-zinc-800 rounded-lg text-xs font-semibold tracking-wider text-zinc-400 hover:bg-zinc-900"
+                        className="px-4 py-2 border border-stone-200 dark:border-zinc-800 rounded-lg text-xs font-semibold tracking-wider text-stone-500 dark:text-zinc-400 hover:bg-stone-50 dark:hover:bg-zinc-900"
+                      >
+                        {t('common.cancel')}
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2.5 bg-[#d97736] hover:bg-[#c2410c] text-white font-semibold text-xs rounded-lg tracking-wider shadow-sm cursor-pointer"
+                      >
+                        {t('common.save')}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {/* =========================================
+                TAB VIEW: PROJECT CATEGORIES CRUD
+                ========================================= */}
+            {activeSubTab === 'categories' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between mb-4 border-b border-stone-200 dark:border-zinc-800 pb-4">
+                  <h3 className="text-stone-900 dark:text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
+                    <Tags className="w-5 h-5 text-[#d97736]" />
+                    Project Categories Master List
+                  </h3>
+                  {!editingCat && (
+                    <button
+                      onClick={() => setEditingCat({ id: '', nameEn: '', nameFr: '' })}
+                      className="px-4 py-2 bg-[#d97736] hover:bg-[#c2410c] text-white rounded-lg text-xs font-semibold tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" /> Add Category
+                    </button>
+                  )}
+                </div>
+
+                {!editingCat ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {categories.map((cat) => (
+                      <div
+                        key={cat.id}
+                        className="p-5 rounded-2xl bg-stone-50/50 dark:bg-neutral-900/20 border border-stone-200 dark:border-zinc-800 flex items-center justify-between hover:border-[#d97736] hover:scale-[1.01] transition-all duration-300 luxury-glow shadow-sm"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#d97736] bg-[#d97736]/10 px-2 py-0.5 rounded">
+                              {cat.id}
+                            </span>
+                          </div>
+                          <h4 className="text-stone-900 dark:text-white font-semibold text-sm mt-2">
+                            {cat.nameEn} <span className="text-stone-500 dark:text-zinc-500 font-normal">/ {cat.nameFr}</span>
+                          </h4>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditingCat(cat)}
+                            className="p-2 border border-stone-200 dark:border-zinc-800 rounded-lg text-stone-500 hover:text-stone-900 dark:text-zinc-400 dark:hover:text-white bg-stone-105/50 dark:bg-zinc-800 hover:bg-stone-200/50 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                            title="Edit Category Name"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(cat.id)}
+                            className="p-2 border border-red-200 dark:border-red-900/30 rounded-lg text-red-600 dark:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+                            title="Delete Category"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <form onSubmit={handleSaveCategory} className="bg-stone-50/50 dark:bg-neutral-900/20 border border-stone-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm luxury-glow space-y-4 max-w-xl text-xs text-stone-700 dark:text-zinc-300">
+                    <div className="bg-[#1c1917]/5 dark:bg-[#1c1917]/35 border border-[#d97736]/15 rounded-xl p-4 text-[11px] leading-relaxed text-stone-600 dark:text-zinc-350">
+                      Creating or modifying a project category instantly updates filter options on the live portfolio view.
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-widest text-[#d97736]">
+                        Category Identifier / Slug
+                      </label>
+                      <input
+                        type="text"
+                        disabled={!!editingCat.id}
+                        value={editingCat.id || ''}
+                        onChange={(e) => setEditingCat({ ...editingCat, id: e.target.value.toLowerCase().replace(/[^a-z0-9_-]+/g, '') })}
+                        placeholder="e.g. cloud-native (Leave empty to auto-slugify English Name)"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75 disabled:opacity-50"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-[#d97736]">
+                          English Name (Required)
+                        </label>
+                        <input
+                          type="text"
+                          value={editingCat.nameEn || ''}
+                          onChange={(e) => setEditingCat({ ...editingCat, nameEn: e.target.value })}
+                          placeholder="e.g. Cloud-Native Apps"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-[#d97736]">
+                          French Name (Required)
+                        </label>
+                        <input
+                          type="text"
+                          value={editingCat.nameFr || ''}
+                          onChange={(e) => setEditingCat({ ...editingCat, nameFr: e.target.value })}
+                          placeholder="e.g. Applications Cloud"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 justify-end pt-4 border-t border-stone-200 dark:border-zinc-805">
+                      <button
+                        type="button"
+                        onClick={() => setEditingCat(null)}
+                        className="px-4 py-2 border border-stone-200 dark:border-zinc-800 rounded-lg text-xs font-semibold tracking-wider text-stone-500 dark:text-zinc-400 hover:bg-stone-50 dark:hover:bg-zinc-900"
                       >
                         {t('common.cancel')}
                       </button>
@@ -1067,8 +1254,8 @@ export default function AdminPanel() {
                 ========================================= */}
             {activeSubTab === 'tech' && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between mb-4 border-b border-zinc-850 pb-4">
-                  <h3 className="text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
+                <div className="flex items-center justify-between mb-4 border-b border-stone-200 dark:border-zinc-850 pb-4">
+                  <h3 className="text-stone-900 dark:text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
                     <Code className="w-5 h-5 text-[#d97736]" />
                     Technologies Core Master List
                   </h3>
@@ -1084,36 +1271,34 @@ export default function AdminPanel() {
                 </div>
 
                 {!editingTech ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs text-zinc-300">
+                  <div className="overflow-x-auto bg-stone-50/50 dark:bg-neutral-900/20 rounded-2xl border border-stone-200 dark:border-zinc-800 p-4 luxury-glow shadow-sm text-stone-700 dark:text-zinc-300">
+                    <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr className="border-b border-zinc-900 text-zinc-500 uppercase tracking-widest text-[9px] font-mono select-none">
-                          <th className="py-2.5 px-4 animate-slide-up">Tech Name</th>
+                        <tr className="border-b border-stone-200 dark:border-zinc-800 text-stone-500 dark:text-zinc-500 uppercase tracking-widest text-[9px] font-mono select-none">
+                          <th className="py-2.5 px-4">Tech Name</th>
                           <th className="py-2.5 px-4">Category</th>
                           <th className="py-2.5 px-4">Proficiency</th>
                           <th className="py-2.5 px-4">Experience (Years)</th>
                           <th className="py-2.5 px-4 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-950/40">
+                      <tbody className="divide-y divide-stone-200/40 dark:divide-zinc-850/40">
                         {technologies.map((tech) => (
-                          <tr key={tech.id} className="hover:bg-neutral-900/40 transition-colors">
-                            <td className="py-3.5 px-4 font-semibold text-white">{tech.name}</td>
+                          <tr key={tech.id} className="hover:bg-stone-105/50 dark:hover:bg-neutral-900/40 transition-colors">
+                            <td className="py-3.5 px-4 font-semibold text-stone-900 dark:text-white">{tech.name}</td>
                             <td className="py-3.5 px-4 font-mono capitalize text-[#d97736]">{tech.category}</td>
-                            <td className="py-3.5 px-4">
-                              <span className="font-semibold font-mono text-xs">{tech.proficiency}%</span>
-                            </td>
+                            <td className="py-3.5 px-4 font-semibold font-mono text-xs">{tech.proficiency}%</td>
                             <td className="py-3.5 px-4 font-mono">{tech.yearsExperience} yrs</td>
                             <td className="py-3.5 px-4 text-right space-x-2">
                               <button
                                 onClick={() => setEditingTech(tech)}
-                                className="p-1 px-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md font-semibold font-mono text-[10px] cursor-pointer"
+                                className="p-1 px-2.5 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-stone-850 dark:text-white border border-stone-200 dark:border-zinc-700 rounded-md font-semibold font-mono text-[10px] transition-all cursor-pointer"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteTech(tech.id)}
-                                className="p-1 px-2 text-red-400 bg-red-950/10 hover:bg-red-950/20 rounded-md font-mono text-[10px] cursor-pointer"
+                                className="p-1 px-2 text-red-600 dark:text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-md font-mono text-[10px] transition-all cursor-pointer"
                               >
                                 Delete
                               </button>
@@ -1124,25 +1309,25 @@ export default function AdminPanel() {
                     </table>
                   </div>
                 ) : (
-                  <form onSubmit={handleSaveTech} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-slide-up">
+                  <form onSubmit={handleSaveTech} className="bg-stone-50/50 dark:bg-neutral-900/20 rounded-2xl border border-stone-200 dark:border-zinc-800 p-6 shadow-sm luxury-glow space-y-4 text-xs text-stone-700 dark:text-zinc-350">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Technology Name</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Technology Name</label>
                         <input
                           type="text"
                           value={editingTech.name}
                           onChange={(e) => setEditingTech({ ...editingTech, name: e.target.value })}
                           placeholder="e.g. Next.js 15"
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-zinc-400 text-[10px] uppercase font-mono tracking-widest mb-1">Taxonomy Category</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Taxonomy Category</label>
                         <select
                           value={editingTech.category}
                           onChange={(e) => setEditingTech({ ...editingTech, category: e.target.value as any })}
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-[#d97736]/75"
                         >
                           <option value="frontend">Frontend Stack</option>
                           <option value="backend">Backend Logic</option>
@@ -1156,42 +1341,42 @@ export default function AdminPanel() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Proficiency Rate (0-100%)</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Proficiency Rate (0-100%)</label>
                         <input
                           type="number"
                           min="10"
                           max="100"
                           value={editingTech.proficiency}
                           onChange={(e) => setEditingTech({ ...editingTech, proficiency: Number(e.target.value) })}
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-[#d97736]"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Total Years Experience</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Total Years Experience</label>
                         <input
                           type="number"
                           step="0.5"
                           min="0.5"
                           value={editingTech.yearsExperience}
                           onChange={(e) => setEditingTech({ ...editingTech, yearsExperience: Number(e.target.value) })}
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-[#d97736]"
                           required
                         />
                       </div>
                     </div>
 
-                    <div className="flex justify-end gap-3.5 pt-4 border-t border-zinc-900">
+                    <div className="flex justify-end gap-3.5 pt-4 border-t border-stone-200 dark:border-zinc-805">
                       <button
                         type="button"
                         onClick={() => setEditingTech(null)}
-                        className="px-4 py-2 border border-zinc-800 rounded-lg text-xs font-semibold tracking-wider text-zinc-400 hover:bg-zinc-900"
+                        className="px-4 py-2 border border-stone-200 dark:border-zinc-800 rounded-lg text-xs font-semibold tracking-wider text-stone-500 dark:text-zinc-400 hover:bg-stone-50 dark:hover:bg-zinc-900"
                       >
                         {t('common.cancel')}
                       </button>
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-[#d97736] hover:bg-[#c2410c] text-white font-semibold text-xs rounded-lg tracking-wider"
+                        className="px-5 py-2.5 bg-[#d97736] hover:bg-[#c2410c] text-white font-semibold text-xs rounded-lg tracking-wider shadow-sm cursor-pointer"
                       >
                         {t('common.save')}
                       </button>
@@ -1206,8 +1391,8 @@ export default function AdminPanel() {
                 ========================================= */}
             {activeSubTab === 'exp' && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between mb-4 border-b border-zinc-850 pb-4">
-                  <h3 className="text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
+                <div className="flex items-center justify-between mb-4 border-b border-stone-200 dark:border-zinc-850 pb-4">
+                  <h3 className="text-stone-900 dark:text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
                     <Briefcase className="w-5 h-5 text-[#d97736]" />
                     Timeline Experience Records
                   </h3>
@@ -1226,22 +1411,22 @@ export default function AdminPanel() {
                 </div>
 
                 {!editingExp ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs text-zinc-300">
+                  <div className="overflow-x-auto bg-stone-50/50 dark:bg-neutral-900/20 rounded-2xl border border-stone-200 dark:border-zinc-800 p-4 luxury-glow shadow-sm text-stone-700 dark:text-zinc-300">
+                    <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr className="border-b border-zinc-900 text-zinc-500 uppercase tracking-widest text-[9px] font-mono select-none">
-                          <th className="py-2.5 px-4 animate-slide-up col-span-2">Company / Role</th>
+                        <tr className="border-b border-stone-200 dark:border-zinc-800 text-stone-500 dark:text-zinc-500 uppercase tracking-widest text-[9px] font-mono select-none">
+                          <th className="py-2.5 px-4 col-span-2">Company / Role</th>
                           <th className="py-2.5 px-4">Start Block</th>
                           <th className="py-2.5 px-4">End Block</th>
                           <th className="py-2.5 px-4 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-950/40">
+                      <tbody className="divide-y divide-stone-200/40 dark:divide-zinc-850/40">
                         {experiences.map((exp) => (
-                          <tr key={exp.id} className="hover:bg-neutral-900/40 transition-colors">
+                          <tr key={exp.id} className="hover:bg-stone-105/50 dark:hover:bg-neutral-900/40 transition-colors">
                             <td className="py-3.5 px-4">
-                              <span className="font-bold text-white block">{exp.company}</span>
-                              <span className="text-zinc-500 text-[10px] font-mono leading-none mt-1">{exp.role}</span>
+                              <span className="font-bold text-stone-900 dark:text-white block">{exp.company}</span>
+                              <span className="text-stone-500 dark:text-zinc-500 text-[10px] font-mono leading-none mt-1">{exp.role}</span>
                             </td>
                             <td className="py-3.5 px-4 font-mono">{exp.startDate}</td>
                             <td className="py-3.5 px-4 font-mono">{exp.endDate || 'Active'}</td>
@@ -1251,13 +1436,13 @@ export default function AdminPanel() {
                                   ...exp,
                                   technologies: exp.technologies.join(', ') as any
                                 })}
-                                className="p-1 px-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md font-semibold font-mono text-[10px] cursor-pointer"
+                                className="p-1 px-2.5 bg-stone-100 dark:bg-zinc-800 hover:bg-stone-200 dark:hover:bg-zinc-700 text-stone-850 dark:text-white border border-stone-200 dark:border-zinc-700 rounded-md font-semibold font-mono text-[10px] transition-all cursor-pointer"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteExp(exp.id)}
-                                className="p-1 px-2 text-red-400 bg-red-950/10 hover:bg-red-950/20 rounded-md font-mono text-[10px] cursor-pointer"
+                                className="p-1 px-2 text-red-600 dark:text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-md font-mono text-[10px] transition-all cursor-pointer"
                               >
                                 Delete
                               </button>
@@ -1268,27 +1453,27 @@ export default function AdminPanel() {
                     </table>
                   </div>
                 ) : (
-                  <form onSubmit={handleSaveExp} className="space-y-4">
+                  <form onSubmit={handleSaveExp} className="bg-stone-50/50 dark:bg-neutral-900/20 rounded-2xl border border-stone-200 dark:border-zinc-800 p-6 shadow-sm luxury-glow space-y-4 text-xs text-stone-700 dark:text-zinc-350 font-sans">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-slide-up">
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Company Entity</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Company Entity</label>
                         <input
                           type="text"
                           value={editingExp.company}
                           onChange={(e) => setEditingExp({ ...editingExp, company: e.target.value })}
                           placeholder="e.g. Acme Labs"
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-[#d97736]"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Engineering Role</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Engineering Role</label>
                         <input
                           type="text"
                           value={editingExp.role}
                           onChange={(e) => setEditingExp({ ...editingExp, role: e.target.value })}
                           placeholder="e.g. Junior Systems Lead"
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-[#d97736]"
                           required
                         />
                       </div>
@@ -1296,62 +1481,62 @@ export default function AdminPanel() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Start Month/Year</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Start Month/Year</label>
                         <input
                           type="text"
                           value={editingExp.startDate}
                           onChange={(e) => setEditingExp({ ...editingExp, startDate: e.target.value })}
                           placeholder="e.g. Jun 2025"
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-[#d97736]"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">End Month/Year (Leave empty if active)</label>
+                        <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">End Month/Year (Leave empty if active)</label>
                         <input
                           type="text"
                           value={editingExp.endDate || ''}
                           onChange={(e) => setEditingExp({ ...editingExp, endDate: e.target.value || undefined })}
                           placeholder="e.g. Dec 2025"
-                          className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                          className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-[#d97736]"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Description Accomplishments</label>
+                      <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Description Accomplishments</label>
                       <textarea
                         value={editingExp.description}
                         onChange={(e) => setEditingExp({ ...editingExp, description: e.target.value })}
                         rows={4}
                         placeholder="Detail responsibility and tech challenges resolved..."
-                        className="w-full bg-neutral-950 border border-zinc-800 rounded-lg p-3 text-xs text-white focus:outline-[#d97736] resize-none"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg p-3 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75 resize-none"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Technologies tags context (Comma lists)</label>
+                      <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Technologies tags context (Comma lists)</label>
                       <input
                         type="text"
                         value={editingExp.technologies as any}
                         onChange={(e) => setEditingExp({ ...editingExp, technologies: e.target.value as any })}
                         placeholder="e.g. React, Node.js, Express, Docker"
-                        className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-[#d97736]"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-[#d97736]"
                       />
                     </div>
 
-                    <div className="flex justify-end gap-3.5 pt-4 border-t border-zinc-900">
+                    <div className="flex justify-end gap-3.5 pt-4 border-t border-stone-200 dark:border-zinc-805">
                       <button
                         type="button"
                         onClick={() => setEditingExp(null)}
-                        className="px-4 py-2 border border-zinc-800 rounded-lg text-xs font-semibold tracking-wider text-zinc-400 hover:bg-zinc-900"
+                        className="px-4 py-2 border border-stone-200 dark:border-zinc-800 rounded-lg text-xs font-semibold tracking-wider text-stone-500 dark:text-zinc-400 hover:bg-stone-50 dark:hover:bg-zinc-900"
                       >
                         {t('common.cancel')}
                       </button>
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-[#d97736] hover:bg-[#c2410c] text-white font-semibold text-xs rounded-lg tracking-wider"
+                        className="px-5 py-2.5 bg-[#d97736] hover:bg-[#c2410c] text-white font-semibold text-xs rounded-lg tracking-wider shadow-sm cursor-pointer"
                       >
                         {t('common.save')}
                       </button>
@@ -1366,8 +1551,8 @@ export default function AdminPanel() {
                 ========================================= */}
             {activeSubTab === 'messages' && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between mb-4 border-b border-zinc-850 pb-4">
-                  <h3 className="text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
+                <div className="flex items-center justify-between mb-4 border-b border-stone-200 dark:border-zinc-850 pb-4">
+                  <h3 className="text-stone-900 dark:text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
                     <Mail className="w-5 h-5 text-[#d97736]" />
                     Recruiter Request Inbox
                   </h3>
@@ -1378,14 +1563,14 @@ export default function AdminPanel() {
 
                 <div className="space-y-4">
                   {messages.length === 0 ? (
-                    <div className="text-center py-12 text-zinc-600 font-mono text-xs border border-zinc-900 rounded-xl bg-neutral-950/20">
+                    <div className="text-center py-12 text-stone-500 dark:text-zinc-500 font-mono text-xs border border-stone-200 dark:border-zinc-800 rounded-xl bg-stone-50/50 dark:bg-neutral-950/20">
                       Inbox database store is currently empty.
                     </div>
                   ) : (
                     messages.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`p-6 rounded-xl border relative transition-all ${msg.status === 'unread' ? 'border-[#d97736]/30 bg-[#d97736]/3' : 'border-zinc-850 bg-neutral-950/10 hover-glow'}`}
+                        className={`p-6 rounded-xl border relative transition-all ${msg.status === 'unread' ? 'border-[#d97736]/40 bg-[#d97736]/5 dark:bg-[#d97736]/3' : 'border-stone-200 dark:border-zinc-805 bg-stone-50/50 dark:bg-neutral-900/25 hover:border-[#d97736]'}`}
                       >
                         {msg.status === 'unread' && (
                           <span className="absolute top-4 right-4 w-2 h-2 rounded-full bg-[#d97736] animate-ping" />
@@ -1393,20 +1578,20 @@ export default function AdminPanel() {
 
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3 select-none">
                           <div>
-                            <span className="text-white text-xs font-bold">{msg.name}</span>
-                            <span className="text-zinc-500 text-[10px] font-mono ml-2">({msg.email})</span>
+                            <span className="text-stone-900 dark:text-white text-xs font-bold">{msg.name}</span>
+                            <span className="text-stone-500 dark:text-zinc-500 text-[10px] font-mono ml-2">({msg.email})</span>
                           </div>
-                          <span className="text-zinc-600 font-mono text-[9px]">{new Date(msg.createdAt).toLocaleString()}</span>
+                          <span className="text-stone-505 dark:text-zinc-600 font-mono text-[9px]">{new Date(msg.createdAt).toLocaleString()}</span>
                         </div>
 
-                        <p className="text-zinc-400 text-[10.5px] uppercase font-mono tracking-widest mt-1 mb-2 font-bold">
+                        <p className="text-stone-505 dark:text-zinc-550 text-[10px] uppercase font-mono tracking-widest mt-1 mb-2 font-bold">
                           SUJET: {msg.subject}
                         </p>
-                        <p className="text-zinc-300 text-xs leading-relaxed bg-[#0c0a09]/40 p-4 rounded-lg border border-zinc-950/80 whitespace-pre-line font-sans">
+                        <p className="text-stone-800 dark:text-zinc-300 text-xs leading-relaxed bg-white dark:bg-[#0c0a09]/40 p-4 rounded-lg border border-stone-200 dark:border-zinc-900 whitespace-pre-line font-sans">
                           {msg.message}
                         </p>
 
-                        <div className="flex justify-end gap-3.5 mt-4 pt-3 border-t border-zinc-950/40">
+                        <div className="flex justify-end gap-3.5 mt-4 pt-3 border-t border-stone-200 dark:border-zinc-900/40">
                           {msg.status === 'unread' && (
                             <button
                               onClick={() => handleMarkRead(msg.id)}
@@ -1418,7 +1603,7 @@ export default function AdminPanel() {
                           )}
                           <button
                             onClick={() => handleDeleteMessage(msg.id)}
-                            className="px-3 py-1.5 rounded bg-red-950/10 text-red-400 text-[10px] font-semibold border border-red-500/10 flex items-center gap-1 hover:bg-red-950/20 transition-all cursor-pointer"
+                            className="px-3 py-1.5 rounded bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-semibold border border-red-550/15 flex items-center gap-1 hover:bg-red-500/20 transition-all cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             Delete
@@ -1436,8 +1621,8 @@ export default function AdminPanel() {
                 ========================================= */}
             {activeSubTab === 'seo' && seo && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between mb-4 border-b border-zinc-850 pb-4">
-                  <h3 className="text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
+                <div className="flex items-center justify-between mb-4 border-b border-stone-200 dark:border-zinc-850 pb-4">
+                  <h3 className="text-stone-900 dark:text-white font-display font-semibold text-lg uppercase tracking-wider flex items-center gap-2">
                     <Settings2 className="w-5 h-5 text-[#d97736]" />
                     Enterprise-Grade SEO Parameters
                   </h3>
@@ -1458,21 +1643,21 @@ export default function AdminPanel() {
                 </div>
 
                 {!editingSeo ? (
-                  <div className="space-y-5 text-xs text-zinc-300">
-                    <div className="bg-neutral-900/10 p-5 rounded-2xl border border-zinc-900 space-y-4">
+                  <div className="space-y-5 text-xs text-stone-700 dark:text-zinc-300">
+                    <div className="bg-stone-50/50 dark:bg-neutral-900/20 p-5 rounded-2xl border border-stone-200 dark:border-zinc-800 space-y-4 luxury-glow shadow-sm">
                       <div>
-                        <span className="text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">Default Site Document Title</span>
-                        <p className="text-white text-sm font-semibold">{seo.siteTitle}</p>
+                        <span className="text-stone-400 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">Default Site Document Title</span>
+                        <p className="text-stone-900 dark:text-white text-sm font-semibold">{seo.siteTitle}</p>
                       </div>
                       <div>
-                        <span className="text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">Global Meta Description</span>
-                        <p className="text-zinc-300 font-sans leading-relaxed">{seo.metaDescription}</p>
+                        <span className="text-stone-400 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">Global Meta Description</span>
+                        <p className="text-stone-700 dark:text-zinc-300 font-sans leading-relaxed">{seo.metaDescription}</p>
                       </div>
                       <div>
-                        <span className="text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">Site Search Tags / Keywords</span>
+                        <span className="text-stone-400 dark:text-zinc-500 font-mono text-[9px] uppercase tracking-widest block mb-1">Site Search Tags / Keywords</span>
                         <div className="flex flex-wrap gap-1.5 mt-2">
                           {seo.keywords.map((kw, i) => (
-                            <span key={i} className="px-2.5 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400 font-mono">
+                            <span key={i} className="px-2.5 py-0.5 rounded bg-stone-105 dark:bg-zinc-800 text-[10px] text-stone-605 dark:text-zinc-400 font-mono border border-stone-200 dark:border-zinc-700/50">
                               {kw}
                             </span>
                           ))}
@@ -1481,52 +1666,52 @@ export default function AdminPanel() {
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={handleSaveSEO} className="space-y-5">
+                  <form onSubmit={handleSaveSEO} className="bg-stone-50/50 dark:bg-neutral-900/20 rounded-2xl border border-stone-200 dark:border-zinc-800 p-6 shadow-sm luxury-glow space-y-5 text-xs text-stone-700 dark:text-zinc-350">
                     <div>
-                      <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Site Title Tag</label>
+                      <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Site Title Tag</label>
                       <input
                         type="text"
                         value={editingSeo.siteTitle}
                         onChange={(e) => setEditingSeo({ ...editingSeo, siteTitle: e.target.value })}
-                        className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-[#d97736]"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-[#d97736]"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Meta Description</label>
+                      <label className="block text-stone-500 dark:text-zinc-500 text-[10px] uppercase font-mono tracking-widest mb-1">Meta Description</label>
                       <textarea
                         value={editingSeo.metaDescription}
                         onChange={(e) => setEditingSeo({ ...editingSeo, metaDescription: e.target.value })}
                         rows={4}
-                        className="w-full bg-neutral-950 border border-zinc-800 rounded-lg p-3.5 text-xs text-white focus:outline-[#d97736] resize-none leading-relaxed"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg p-3.5 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-700 focus:outline-none focus:border-[#d97736]/75 resize-none leading-relaxed"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-zinc-400 text-[10px] uppercase font-mono tracking-widest mb-1">Keywords Tags (Comma list)</label>
+                      <label className="block text-stone-500 dark:text-zinc-400 text-[10px] uppercase font-mono tracking-widest mb-1">Keywords Tags (Comma list)</label>
                       <input
                         type="text"
                         value={editingSeo.keywords as any}
                         onChange={(e) => setEditingSeo({ ...editingSeo, keywords: e.target.value as any })}
                         placeholder="e.g. Grégoire Batcho, Full Stack Developer, Paris"
-                        className="w-full bg-neutral-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-[#d97736]"
+                        className="w-full bg-white dark:bg-neutral-950/60 border border-stone-200 dark:border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-705 focus:outline-[#d97736]"
                         required
                       />
                     </div>
 
-                    <div className="flex justify-end gap-3.5 pt-4 border-t border-zinc-900">
+                    <div className="flex justify-end gap-3.5 pt-4 border-t border-stone-200 dark:border-zinc-805">
                       <button
                         type="button"
                         onClick={() => setEditingSeo(null)}
-                        className="px-4 py-2 border border-zinc-800 rounded-lg text-xs font-semibold tracking-wider text-zinc-400 hover:bg-zinc-900"
+                        className="px-4 py-2 border border-stone-200 dark:border-zinc-800 rounded-lg text-xs font-semibold tracking-wider text-stone-500 dark:text-zinc-400 hover:bg-stone-50 dark:hover:bg-zinc-900"
                       >
                         {t('common.cancel')}
                       </button>
                       <button
                         type="submit"
-                        className="px-5 py-2.5 bg-[#d97736] hover:bg-[#c2410c] text-white font-semibold text-xs rounded-lg tracking-wider"
+                        className="px-5 py-2.5 bg-[#d97736] hover:bg-[#c2410c] text-white font-semibold text-xs rounded-lg tracking-wider shadow-sm cursor-pointer"
                       >
                         {t('common.save')}
                       </button>

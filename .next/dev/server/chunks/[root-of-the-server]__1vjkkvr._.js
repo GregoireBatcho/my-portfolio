@@ -342,7 +342,29 @@ const defaultData = {
             "Express",
             "MongoDB"
         ]
-    }
+    },
+    projectCategories: [
+        {
+            id: "web",
+            nameEn: "Web App",
+            nameFr: "Application Web"
+        },
+        {
+            id: "saas",
+            nameEn: "SaaS Solution",
+            nameFr: "Solution SaaS"
+        },
+        {
+            id: "mobile",
+            nameEn: "Mobile Application",
+            nameFr: "Application Mobile"
+        },
+        {
+            id: "opensource",
+            nameEn: "Open Source",
+            nameFr: "Open Source"
+        }
+    ]
 };
 // Database class to read and write atomically
 class DatabaseStore {
@@ -440,6 +462,13 @@ class DatabaseStore {
                 this.data.messages = remoteMsg.map(({ _id, ...rest })=>rest);
             } else if (this.data.messages.length > 0) {
                 await this.mongoDb.collection('messages').insertMany(this.data.messages);
+            }
+            // Fetch Categories
+            const remoteCats = await this.mongoDb.collection('projectCategories').find({}).toArray();
+            if (remoteCats.length > 0) {
+                this.data.projectCategories = remoteCats.map(({ _id, ...rest })=>rest);
+            } else {
+                await this.mongoDb.collection('projectCategories').insertMany(this.data.projectCategories);
             }
             // Fetch SEO
             const remoteSEO = await this.mongoDb.collection('seoSettings').findOne({
@@ -700,6 +729,44 @@ class DatabaseStore {
             id: 'active-seo'
         }, this.data.seoSettings);
         return this.data.seoSettings;
+    }
+    // Project Categories CRUD
+    getProjectCategories() {
+        return this.data.projectCategories || [];
+    }
+    addProjectCategory(category) {
+        const id = category.id || `cat-${Date.now()}`;
+        const newCat = {
+            id,
+            ...category
+        };
+        if (!this.data.projectCategories) this.data.projectCategories = [];
+        this.data.projectCategories.push(newCat);
+        this.save();
+        this.syncMongoItem('projectCategories', {
+            id
+        }, newCat);
+        return newCat;
+    }
+    updateProjectCategory(id, category) {
+        const index = this.data.projectCategories.findIndex((c)=>c.id === id);
+        if (index === -1) throw new Error("Category not found");
+        this.data.projectCategories[index] = {
+            ...this.data.projectCategories[index],
+            ...category
+        };
+        this.save();
+        this.syncMongoItem('projectCategories', {
+            id
+        }, this.data.projectCategories[index]);
+        return this.data.projectCategories[index];
+    }
+    deleteProjectCategory(id) {
+        this.data.projectCategories = (this.data.projectCategories || []).filter((c)=>c.id !== id);
+        this.save();
+        this.syncMongoItem('projectCategories', {
+            id
+        }, {}, true);
     }
 }
 const db = new DatabaseStore();

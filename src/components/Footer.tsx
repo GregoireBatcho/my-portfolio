@@ -5,9 +5,10 @@ import { Github, Linkedin, Twitter, Mail, Heart, Cpu } from 'lucide-react';
 
 interface FooterProps {
   setCurrentTab: (tab: string) => void;
+  profile?: any;
 }
 
-export default function Footer({ setCurrentTab }: FooterProps) {
+export default function Footer({ setCurrentTab, profile }: FooterProps) {
   const { t } = useLanguage();
   const year = new Date().getFullYear();
 
@@ -23,7 +24,7 @@ export default function Footer({ setCurrentTab }: FooterProps) {
               <Cpu className="w-4 h-4 text-[#d97736]" />
             </div>
             <span className="text-stone-800 dark:text-white font-display font-medium text-sm tracking-wider uppercase">
-              Grégoire BATCHO
+              {profile?.fullname || "Grégoire BATCHO"}
             </span>
           </div>
           <p className="text-stone-600 dark:text-zinc-500 text-xs mt-3 max-w-sm">
@@ -43,7 +44,7 @@ export default function Footer({ setCurrentTab }: FooterProps) {
         {/* Social Network Links */}
         <div className="flex items-center gap-4">
           <a
-            href="https://github.com/gregoire-batcho"
+            href={profile?.socials?.github || "https://github.com/gregoire-batcho"}
             target="_blank"
             rel="noopener noreferrer"
             className="w-9 h-9 rounded-lg border border-stone-200 dark:border-[#292524] bg-white dark:bg-neutral-900 flex items-center justify-center text-stone-600 dark:text-zinc-400 hover:text-[#d97736] hover:border-[#d97736]/30 transition-all cursor-pointer"
@@ -52,7 +53,7 @@ export default function Footer({ setCurrentTab }: FooterProps) {
             <Github className="w-4 h-4" />
           </a>
           <a
-            href="https://linkedin.com/in/gregoire-batcho"
+            href={profile?.socials?.linkedin || "https://linkedin.com/in/gregoire-batcho"}
             target="_blank"
             rel="noopener noreferrer"
             className="w-9 h-9 rounded-lg border border-stone-200 dark:border-[#292524] bg-white dark:bg-neutral-900 flex items-center justify-center text-stone-600 dark:text-zinc-400 hover:text-[#d97736] hover:border-[#d97736]/30 transition-all cursor-pointer"
@@ -61,7 +62,7 @@ export default function Footer({ setCurrentTab }: FooterProps) {
             <Linkedin className="w-4 h-4" />
           </a>
           <a
-            href="https://twitter.com/gregoire_batcho"
+            href={profile?.socials?.twitter || "https://twitter.com/gregoire_batcho"}
             target="_blank"
             rel="noopener noreferrer"
             className="w-9 h-9 rounded-lg border border-stone-200 dark:border-[#292524] bg-white dark:bg-neutral-900 flex items-center justify-center text-stone-600 dark:text-zinc-400 hover:text-[#d97736] hover:border-[#d97736]/30 transition-all cursor-pointer"
@@ -70,7 +71,7 @@ export default function Footer({ setCurrentTab }: FooterProps) {
             <Twitter className="w-4 h-4" />
           </a>
           <a
-            href="mailto:batchogregoire81@gmail.com"
+            href={profile?.socials?.email ? `mailto:${profile.socials.email}` : "mailto:batchogregoire81@gmail.com"}
             className="w-9 h-9 rounded-lg border border-stone-200 dark:border-[#292524] bg-white dark:bg-neutral-900 flex items-center justify-center text-stone-600 dark:text-zinc-400 hover:text-[#d97736] hover:border-[#d97736]/30 transition-all cursor-pointer"
             aria-label="Email Link"
           >
@@ -80,7 +81,7 @@ export default function Footer({ setCurrentTab }: FooterProps) {
       </div>
 
       <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-stone-200 dark:border-[#1c1917] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left relative z-10 text-[11px] text-stone-500 dark:text-zinc-600 font-mono">
-        <p>© {year} Grégoire BATCHO. {t('common.rights')}</p>
+        <p>© {year} {profile?.fullname || "Grégoire BATCHO"}. {t('common.rights')}</p>
         <p className="flex items-center gap-1.5 justify-center">
           {t('common.engineeredWith')} <Heart className="w-3 h-3 text-[#d97736] fill-[#d97736]" /> using Next.js & MongoDB Atlas.
         </p>

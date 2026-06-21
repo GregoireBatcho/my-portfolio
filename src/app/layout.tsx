@@ -1,24 +1,25 @@
-import '../index.css';
-import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
+import "../index.css";
+import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 
 const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
+  subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-display',
+  subsets: ["latin"],
+  variable: "--font-display",
 });
 
 const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
+  subsets: ["latin"],
+  variable: "--font-mono",
 });
 
 export const metadata = {
   title: "Grégoire BATCHO | Full Stack Developer Junior",
-  description: "Architecting modern server backends aligned with immersive responsive frontend templates.",
+  description:
+    "Architecting modern server backends aligned with immersive responsive frontend templates.",
 };
 
 export default function RootLayout({
@@ -27,7 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="fr"
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -45,13 +50,11 @@ export default function RootLayout({
                   }
                 } catch (_) {}
               })();
-            `
+            `,
           }}
         />
       </head>
-      <body className="antialiased">
-        {children}
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

@@ -9,11 +9,17 @@ import { motion } from 'motion/react';
 interface ProjectCardProps {
   key?: React.Key;
   project: Project;
+  categories?: any[];
   onSelect: (project: Project) => void;
 }
 
-export default function ProjectCard({ project, onSelect }: ProjectCardProps) {
-  const { t } = useLanguage();
+export default function ProjectCard({ project, categories, onSelect }: ProjectCardProps) {
+  const { t, locale } = useLanguage();
+  
+  const matchedCat = categories?.find((c) => c.id === project.category);
+  const displayCategory = matchedCat
+    ? (locale === 'fr' ? matchedCat.nameFr : matchedCat.nameEn)
+    : project.category;
 
   return (
     <motion.div
@@ -53,7 +59,7 @@ export default function ProjectCard({ project, onSelect }: ProjectCardProps) {
         {/* DETAILS SECTION */}
         <div className="p-6 cursor-pointer" onClick={() => onSelect(project)}>
           <span className="text-[10px] uppercase font-mono tracking-widest text-[#d97736] font-bold">
-            {project.category}
+            {displayCategory}
           </span>
           <h3 className="text-stone-850 dark:text-white font-display font-semibold text-lg tracking-wide mt-2 group-hover:text-[#d97736] transition-colors duration-350">
             {project.title}

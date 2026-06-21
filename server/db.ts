@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { MongoClient, Db } from 'mongodb';
 import { 
-  User, Profile, Technology, Project, Experience, SoftSkill, ContactMessage, SEOSettings 
+  User, Profile, Technology, Project, Experience, SoftSkill, ContactMessage, SEOSettings, ProjectCategory 
 } from '../src/types';
 
 const DATA_FILE = path.join(process.cwd(), 'portfolio-db.json');
@@ -17,6 +17,7 @@ interface DatabaseSchema {
   softSkills: SoftSkill[];
   messages: ContactMessage[];
   seoSettings: SEOSettings;
+  projectCategories: ProjectCategory[];
 }
 
 const defaultData: DatabaseSchema = {
@@ -169,7 +170,13 @@ const defaultData: DatabaseSchema = {
     siteTitle: "Grégoire BATCHO | Junior Full Stack Developer",
     metaDescription: "Professional Full-Stack Developer Portfolio for Grégoire BATCHO. High-end dark theme design showcasing interactive works, timeline, and custom admin controller.",
     keywords: ["Grégoire Batcho", "Batcho", "Full Stack Developer", "Developer", "Paris Developer", "React Portfolio", "Express", "MongoDB"]
-  }
+  },
+  projectCategories: [
+    { id: "web", nameEn: "Web App", nameFr: "Application Web" },
+    { id: "saas", nameEn: "SaaS Solution", nameFr: "Solution SaaS" },
+    { id: "mobile", nameEn: "Mobile Application", nameFr: "Application Mobile" },
+    { id: "opensource", nameEn: "Open Source", nameFr: "Open Source" }
+  ]
 };
 
 // Database class to read and write atomically
@@ -267,6 +274,14 @@ class DatabaseStore {
         this.data.messages = remoteMsg.map(({ _id, ...rest }) => rest) as any;
       } else if (this.data.messages.length > 0) {
         await this.mongoDb.collection('messages').insertMany(this.data.messages);
+      }
+
+      // Fetch Categories
+      const remoteCats = await this.mongoDb.collection('projectCategories').find({}).toArray();
+      if (remoteCats.length > 0) {
+        this.data.projectCategories = remoteCats.map(({ _id, ...rest }) => rest) as any;
+      } else {
+        await this.mongoDb.collection('projectCategories').insertMany(this.data.projectCategories);
       }
 
       // Fetch SEO
@@ -480,6 +495,36 @@ class DatabaseStore {
     this.save();
     this.syncMongoItem('seoSettings', { id: 'active-seo' }, this.data.seoSettings);
     return this.data.seoSettings;
+  }
+
+  // Project Categories CRUD
+  public getProjectCategories(): ProjectCategory[] {
+    return this.data.projectCategories || [];
+  }
+
+  public addProjectCategory(category: Omit<ProjectCategory, 'id'> & { id?: string }): ProjectCategory {
+    const id = category.id || `cat-${Date.now()}`;
+    const newCat = { id, ...category };
+    if (!this.data.projectCategories) this.data.projectCategories = [];
+    this.data.projectCategories.push(newCat);
+    this.save();
+    this.syncMongoItem('projectCategories', { id }, newCat);
+    return newCat;
+  }
+
+  public updateProjectCategory(id: string, category: Partial<ProjectCategory>): ProjectCategory {
+    const index = this.data.projectCategories.findIndex(c => c.id === id);
+    if (index === -1) throw new Error("Category not found");
+    this.data.projectCategories[index] = { ...this.data.projectCategories[index], ...category };
+    this.save();
+    this.syncMongoItem('projectCategories', { id }, this.data.projectCategories[index]);
+    return this.data.projectCategories[index];
+  }
+
+  public deleteProjectCategory(id: string): void {
+    this.data.projectCategories = (this.data.projectCategories || []).filter(c => c.id !== id);
+    this.save();
+    this.syncMongoItem('projectCategories', { id }, {}, true);
   }
 }
 

@@ -18,20 +18,23 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 const dictionaries = { en, fr };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // Try to load initial locale from localStorage or browser preferences
-  const [locale, setLocaleState] = useState<Locale>(() => {
+  const [locale, setLocaleState] = useState<Locale>('fr');
+
+  useEffect(() => {
     try {
       const saved = localStorage.getItem('gregoire-portfolio-locale');
-      if (saved === 'fr' || saved === 'en') return saved;
+      if (saved === 'fr' || saved === 'en') {
+        setLocaleState(saved);
+      } else {
+        const browserLanguage = navigator.language.toLowerCase();
+        if (browserLanguage.startsWith('en')) {
+          setLocaleState('en');
+        } else {
+          setLocaleState('fr');
+        }
+      }
     } catch (_) {}
-    
-    try {
-      const browserLanguage = navigator.language.toLowerCase();
-      if (browserLanguage.startsWith('fr')) return 'fr';
-    } catch (_) {}
-    
-    return 'en';
-  });
+  }, []);
 
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);

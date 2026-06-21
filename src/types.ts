@@ -33,6 +33,12 @@ export interface Technology {
   yearsExperience: number;
 }
 
+export interface ProjectCategory {
+  id: string;
+  nameEn: string;
+  nameFr: string;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -41,7 +47,7 @@ export interface Project {
   fullDescription: string;
   images: string[];
   technologies: string[];
-  category: 'web' | 'mobile' | 'saas' | 'opensource';
+  category: string;
   featured: boolean;
   githubUrl?: string;
   liveUrl?: string;

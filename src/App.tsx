@@ -11,7 +11,7 @@ import Timeline from './components/Timeline';
 import ContactForm from './components/ContactForm';
 import AdminPanel from './components/AdminPanel';
 
-import { Project, Experience, Technology, SoftSkill, Profile } from './types';
+import { Project, Experience, Technology, SoftSkill, Profile, ProjectCategory } from './types';
 import { 
   Sparkles, ArrowRight, Github, Globe, Star, Mail, MapPin, Briefcase, 
   Search, SlidersHorizontal, BookOpen, Layers, Zap, Flame, Terminal, HelpCircle, X, ChevronRight, Download
@@ -25,6 +25,7 @@ function BaseApp() {
   // Database dynamic states
   const [profile, setProfile] = useState<Profile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [categories, setCategories] = useState<ProjectCategory[]>([]);
   const [technologies, setTechnologies] = useState<Technology[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [softSkills, setSoftSkills] = useState<SoftSkill[]>([]);
@@ -37,12 +38,17 @@ function BaseApp() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   // Load everything from persistent API routers on load
-  useEffect(() => {
+  const refreshData = () => {
     fetch('/api/profile').then(r => r.json()).then(data => setProfile(data)).catch(() => {});
     fetch('/api/projects').then(r => r.json()).then(data => setProjects(data)).catch(() => {});
+    fetch('/api/categories').then(r => r.json()).then(data => setCategories(data)).catch(() => {});
     fetch('/api/technologies').then(r => r.json()).then(data => setTechnologies(data)).catch(() => {});
     fetch('/api/experiences').then(r => r.json()).then(data => setExperiences(data)).catch(() => {});
     fetch('/api/softskills').then(r => r.json()).then(data => setSoftSkills(data)).catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshData();
 
     // Listen to URL hash for deep-linked project slugs or secret admin routing
     const handleHashChange = () => {
@@ -271,6 +277,7 @@ function BaseApp() {
                     <ProjectCard 
                       key={proj.id} 
                       project={proj} 
+                      categories={categories}
                       onSelect={(p) => selectProjectWithRoute(p)} 
                     />
                   ))}
@@ -431,10 +438,10 @@ function BaseApp() {
                 <div className="flex bg-stone-100 dark:bg-black/40 border border-stone-200 dark:border-zinc-800 p-1.5 rounded-full flex-wrap gap-1 w-full md:w-auto">
                   {[
                     { id: 'all', label: t('projects.filterAll') },
-                    { id: 'web', label: t('projects.catWeb') },
-                    { id: 'saas', label: t('projects.catSaas') },
-                    { id: 'mobile', label: t('projects.catMobile') },
-                    { id: 'opensource', label: t('projects.catOpensource') }
+                    ...categories.map((c) => ({
+                      id: c.id,
+                      label: locale === 'fr' ? c.nameFr : c.nameEn
+                    }))
                   ].map((cat) => {
                     const isSelected = projectCategory === cat.id;
                     return (
@@ -469,7 +476,7 @@ function BaseApp() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
                   {filteredProjects.map((p) => (
-                    <ProjectCard key={p.id} project={p} onSelect={(proj) => selectProjectWithRoute(proj)} />
+                    <ProjectCard key={p.id} project={p} categories={categories} onSelect={(proj) => selectProjectWithRoute(proj)} />
                   ))}
                 </div>
               )}
@@ -618,7 +625,7 @@ function BaseApp() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
             >
-              <AdminPanel />
+              <AdminPanel onUpdate={refreshData} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -665,7 +672,11 @@ function BaseApp() {
                 {/* Visual labels overlay */}
                 <div className="absolute bottom-6 left-8 right-8">
                   <span className="text-[10px] uppercase font-mono tracking-widest text-[#d97736] font-bold">
-                    {selectedProject.category}
+                    {categories.find((c) => c.id === selectedProject.category)
+                      ? (locale === 'fr'
+                          ? categories.find((c) => c.id === selectedProject.category)?.nameFr
+                          : categories.find((c) => c.id === selectedProject.category)?.nameEn)
+                      : selectedProject.category}
                   </span>
                   <h3 className="text-white font-display font-bold text-2xl md:text-3xl tracking-tight mt-1">
                     {selectedProject.title}
@@ -802,7 +813,7 @@ function BaseApp() {
       </AnimatePresence>
 
       {/* FOOTER */}
-      <Footer setCurrentTab={setCurrentTab} />
+      <Footer setCurrentTab={setCurrentTab} profile={profile} />
     </div>
   );
 }
