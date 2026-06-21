@@ -1,10 +1,13 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { verifyRequest } from '../auth/helper';
 
 export async function GET() {
   try {
-    return NextResponse.json(db.getProjects());
+    const projects = await db.getProjects();
+    return NextResponse.json(projects);
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
@@ -16,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
   try {
     const body = await req.json();
-    const newProj = db.addProject(body);
+    const newProj = await db.addProject(body);
     return NextResponse.json(newProj, { status: 201 });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 400 });

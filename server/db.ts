@@ -185,13 +185,23 @@ class DatabaseStore {
   private mongoClient: MongoClient | null = null;
   private mongoDb: Db | null = null;
   private isMongoConnected: boolean = false;
+  private mongoInitPromise: Promise<void> | null = null;
 
   constructor() {
     this.data = { ...defaultData };
     this.init();
-    this.initMongo().catch(e => {
+    this.mongoInitPromise = this.initMongo().catch(e => {
       console.warn("MongoDB startup synchronization failed:", e);
     });
+  }
+
+  public async ensureConnected(): Promise<void> {
+    if (!process.env.MONGODB_URI) {
+      return;
+    }
+    if (this.mongoInitPromise) {
+      await this.mongoInitPromise;
+    }
   }
 
   private init() {
@@ -313,151 +323,203 @@ class DatabaseStore {
   }
 
   // Helper helper to write background async to avoid blocking HTTP threads
-  private syncMongoItem(colName: string, query: object, doc: object, isDelete = false) {
+  private async syncMongoItem(colName: string, query: object, doc: object, isDelete = false) {
     if (!this.isMongoConnected || !this.mongoDb) return;
-    const db = this.mongoDb;
-    (async () => {
-      try {
-        if (isDelete) {
-          await db.collection(colName).deleteOne(query);
-        } else {
-          await db.collection(colName).updateOne(query, { $set: doc }, { upsert: true });
-        }
-      } catch (err) {
-        console.error(`Background MongoDB update failed for collection ${colName}:`, err);
+    try {
+      if (isDelete) {
+        await this.mongoDb.collection(colName).deleteOne(query);
+      } else {
+        await this.mongoDb.collection(colName).updateOne(query, { $set: doc }, { upsert: true });
       }
-    })();
+    } catch (err) {
+      console.error(`MongoDB update failed for collection ${colName}:`, err);
+    }
   }
 
   // Getters
-  public getProfile(): Profile {
+  public async getProfile(): Promise<Profile> {
+    await this.ensureConnected();
+    if (this.isMongoConnected && this.mongoDb) {
+      const remoteProfile = await this.mongoDb.collection('profile').findOne({ id: 'active-profile' });
+      if (remoteProfile) {
+        const { _id, ...cleanProfile } = remoteProfile as any;
+        return cleanProfile as Profile;
+      }
+    }
     return this.data.profile;
   }
 
-  public updateProfile(profile: Partial<Profile>): Profile {
+  public async updateProfile(profile: Partial<Profile>): Promise<Profile> {
+    await this.ensureConnected();
     this.data.profile = { ...this.data.profile, ...profile };
     this.save();
-    this.syncMongoItem('profile', { id: 'active-profile' }, this.data.profile);
+    await this.syncMongoItem('profile', { id: 'active-profile' }, this.data.profile);
     return this.data.profile;
   }
 
-  public getTechnologies(): Technology[] {
+  public async getTechnologies(): Promise<Technology[]> {
+    await this.ensureConnected();
+    if (this.isMongoConnected && this.mongoDb) {
+      const remoteTechs = await this.mongoDb.collection('technologies').find({}).toArray();
+      if (remoteTechs.length > 0) {
+        return remoteTechs.map(({ _id, ...rest }) => rest) as any;
+      }
+    }
     return this.data.technologies;
   }
 
-  public addTechnology(tech: Omit<Technology, 'id'>): Technology {
+  public async addTechnology(tech: Omit<Technology, 'id'>): Promise<Technology> {
+    await this.ensureConnected();
     const id = `tech-${Date.now()}`;
     const newTech = { id, ...tech };
     this.data.technologies.push(newTech);
     this.save();
-    this.syncMongoItem('technologies', { id }, newTech);
+    await this.syncMongoItem('technologies', { id }, newTech);
     return newTech;
   }
 
-  public updateTechnology(id: string, tech: Partial<Technology>): Technology {
+  public async updateTechnology(id: string, tech: Partial<Technology>): Promise<Technology> {
+    await this.ensureConnected();
     const index = this.data.technologies.findIndex(t => t.id === id);
     if (index === -1) throw new Error("Technology not found");
     this.data.technologies[index] = { ...this.data.technologies[index], ...tech };
     this.save();
-    this.syncMongoItem('technologies', { id }, this.data.technologies[index]);
+    await this.syncMongoItem('technologies', { id }, this.data.technologies[index]);
     return this.data.technologies[index];
   }
 
-  public deleteTechnology(id: string): void {
+  public async deleteTechnology(id: string): Promise<void> {
+    await this.ensureConnected();
     this.data.technologies = this.data.technologies.filter(t => t.id !== id);
     this.save();
-    this.syncMongoItem('technologies', { id }, {}, true);
+    await this.syncMongoItem('technologies', { id }, {}, true);
   }
 
-  public getProjects(): Project[] {
+  public async getProjects(): Promise<Project[]> {
+    await this.ensureConnected();
+    if (this.isMongoConnected && this.mongoDb) {
+      const remoteProjects = await this.mongoDb.collection('projects').find({}).toArray();
+      if (remoteProjects.length > 0) {
+        return remoteProjects.map(({ _id, ...rest }) => rest) as any;
+      }
+    }
     return this.data.projects;
   }
 
-  public addProject(proj: Omit<Project, 'id'>): Project {
+  public async addProject(proj: Omit<Project, 'id'>): Promise<Project> {
+    await this.ensureConnected();
     const id = `proj-${Date.now()}`;
     const newProj = { id, ...proj };
     this.data.projects.push(newProj);
     this.save();
-    this.syncMongoItem('projects', { id }, newProj);
+    await this.syncMongoItem('projects', { id }, newProj);
     return newProj;
   }
 
-  public updateProject(id: string, proj: Partial<Project>): Project {
+  public async updateProject(id: string, proj: Partial<Project>): Promise<Project> {
+    await this.ensureConnected();
     const index = this.data.projects.findIndex(p => p.id === id);
     if (index === -1) throw new Error("Project not found");
     this.data.projects[index] = { ...this.data.projects[index], ...proj };
     this.save();
-    this.syncMongoItem('projects', { id }, this.data.projects[index]);
+    await this.syncMongoItem('projects', { id }, this.data.projects[index]);
     return this.data.projects[index];
   }
 
-  public deleteProject(id: string): void {
+  public async deleteProject(id: string): Promise<void> {
+    await this.ensureConnected();
     this.data.projects = this.data.projects.filter(p => p.id !== id);
     this.save();
-    this.syncMongoItem('projects', { id }, {}, true);
+    await this.syncMongoItem('projects', { id }, {}, true);
   }
 
-  public getExperiences(): Experience[] {
+  public async getExperiences(): Promise<Experience[]> {
+    await this.ensureConnected();
+    if (this.isMongoConnected && this.mongoDb) {
+      const remoteExp = await this.mongoDb.collection('experiences').find({}).toArray();
+      if (remoteExp.length > 0) {
+        return remoteExp.map(({ _id, ...rest }) => rest) as any;
+      }
+    }
     return this.data.experiences;
   }
 
-  public addExperience(exp: Omit<Experience, 'id'>): Experience {
+  public async addExperience(exp: Omit<Experience, 'id'>): Promise<Experience> {
+    await this.ensureConnected();
     const id = `exp-${Date.now()}`;
     const newExp = { id, ...exp };
     this.data.experiences.push(newExp);
     this.save();
-    this.syncMongoItem('experiences', { id }, newExp);
+    await this.syncMongoItem('experiences', { id }, newExp);
     return newExp;
   }
 
-  public updateExperience(id: string, exp: Partial<Experience>): Experience {
+  public async updateExperience(id: string, exp: Partial<Experience>): Promise<Experience> {
+    await this.ensureConnected();
     const index = this.data.experiences.findIndex(e => e.id === id);
     if (index === -1) throw new Error("Experience not found");
     this.data.experiences[index] = { ...this.data.experiences[index], ...exp };
     this.save();
-    this.syncMongoItem('experiences', { id }, this.data.experiences[index]);
+    await this.syncMongoItem('experiences', { id }, this.data.experiences[index]);
     return this.data.experiences[index];
   }
 
-  public deleteExperience(id: string): void {
+  public async deleteExperience(id: string): Promise<void> {
+    await this.ensureConnected();
     this.data.experiences = this.data.experiences.filter(e => e.id !== id);
     this.save();
-    this.syncMongoItem('experiences', { id }, {}, true);
+    await this.syncMongoItem('experiences', { id }, {}, true);
   }
 
-  public getSoftSkills(): SoftSkill[] {
+  public async getSoftSkills(): Promise<SoftSkill[]> {
+    await this.ensureConnected();
+    if (this.isMongoConnected && this.mongoDb) {
+      const remoteSoft = await this.mongoDb.collection('softskills').find({}).toArray();
+      if (remoteSoft.length > 0) {
+        return remoteSoft.map(({ _id, ...rest }) => rest) as any;
+      }
+    }
     return this.data.softSkills;
   }
 
-  public addSoftSkill(skill: Omit<SoftSkill, 'id'>): SoftSkill {
+  public async addSoftSkill(skill: Omit<SoftSkill, 'id'>): Promise<SoftSkill> {
+    await this.ensureConnected();
     const id = `soft-${Date.now()}`;
     const newSkill = { id, ...skill };
     this.data.softSkills.push(newSkill);
     this.save();
-    this.syncMongoItem('softskills', { id }, newSkill);
+    await this.syncMongoItem('softskills', { id }, newSkill);
     return newSkill;
   }
 
-  public updateSoftSkill(id: string, skill: Partial<SoftSkill>): SoftSkill {
+  public async updateSoftSkill(id: string, skill: Partial<SoftSkill>): Promise<SoftSkill> {
+    await this.ensureConnected();
     const index = this.data.softSkills.findIndex(s => s.id === id);
     if (index === -1) throw new Error("SoftSkill not found");
     this.data.softSkills[index] = { ...this.data.softSkills[index], ...skill };
     this.save();
-    this.syncMongoItem('softskills', { id }, this.data.softSkills[index]);
+    await this.syncMongoItem('softskills', { id }, this.data.softSkills[index]);
     return this.data.softSkills[index];
   }
 
-  public deleteSoftSkill(id: string): void {
+  public async deleteSoftSkill(id: string): Promise<void> {
+    await this.ensureConnected();
     this.data.softSkills = this.data.softSkills.filter(s => s.id !== id);
     this.save();
-    this.syncMongoItem('softskills', { id }, {}, true);
+    await this.syncMongoItem('softskills', { id }, {}, true);
   }
 
-  public getMessages(): ContactMessage[] {
+  public async getMessages(): Promise<ContactMessage[]> {
+    await this.ensureConnected();
+    if (this.isMongoConnected && this.mongoDb) {
+      const remoteMsg = await this.mongoDb.collection('messages').find({}).sort({ createdAt: -1 }).toArray();
+      return remoteMsg.map(({ _id, ...rest }) => rest) as any;
+    }
     return this.data.messages;
   }
 
-  public addMessage(msg: Omit<ContactMessage, 'id' | 'status' | 'createdAt'>): ContactMessage {
+  public async addMessage(msg: Omit<ContactMessage, 'id' | 'status' | 'createdAt'>): Promise<ContactMessage> {
+    await this.ensureConnected();
     const id = `msg-${Date.now()}`;
     const newMsg: ContactMessage = {
       id,
@@ -467,64 +529,85 @@ class DatabaseStore {
     };
     this.data.messages.unshift(newMsg);
     this.save();
-    this.syncMongoItem('messages', { id }, newMsg);
+    await this.syncMongoItem('messages', { id }, newMsg);
     return newMsg;
   }
 
-  public markMessageAsRead(id: string): ContactMessage {
+  public async markMessageAsRead(id: string): Promise<ContactMessage> {
+    await this.ensureConnected();
     const index = this.data.messages.findIndex(m => m.id === id);
     if (index === -1) throw new Error("Message not found");
     this.data.messages[index].status = 'read';
     this.save();
-    this.syncMongoItem('messages', { id }, this.data.messages[index]);
+    await this.syncMongoItem('messages', { id }, this.data.messages[index]);
     return this.data.messages[index];
   }
 
-  public deleteMessage(id: string): void {
+  public async deleteMessage(id: string): Promise<void> {
+    await this.ensureConnected();
     this.data.messages = this.data.messages.filter(m => m.id !== id);
     this.save();
-    this.syncMongoItem('messages', { id }, {}, true);
+    await this.syncMongoItem('messages', { id }, {}, true);
   }
 
-  public getSEOSettings(): SEOSettings {
+  public async getSEOSettings(): Promise<SEOSettings> {
+    await this.ensureConnected();
+    if (this.isMongoConnected && this.mongoDb) {
+      const remoteSEO = await this.mongoDb.collection('seoSettings').findOne({ id: 'active-seo' });
+      if (remoteSEO) {
+        const { _id, ...cleanSeo } = remoteSEO as any;
+        return cleanSeo as SEOSettings;
+      }
+    }
     return this.data.seoSettings;
   }
 
-  public updateSEOSettings(settings: Partial<SEOSettings>): SEOSettings {
+  public async updateSEOSettings(settings: Partial<SEOSettings>): Promise<SEOSettings> {
+    await this.ensureConnected();
     this.data.seoSettings = { ...this.data.seoSettings, ...settings };
     this.save();
-    this.syncMongoItem('seoSettings', { id: 'active-seo' }, this.data.seoSettings);
+    await this.syncMongoItem('seoSettings', { id: 'active-seo' }, this.data.seoSettings);
     return this.data.seoSettings;
   }
 
   // Project Categories CRUD
-  public getProjectCategories(): ProjectCategory[] {
+  public async getProjectCategories(): Promise<ProjectCategory[]> {
+    await this.ensureConnected();
+    if (this.isMongoConnected && this.mongoDb) {
+      const remoteCats = await this.mongoDb.collection('projectCategories').find({}).toArray();
+      if (remoteCats.length > 0) {
+        return remoteCats.map(({ _id, ...rest }) => rest) as any;
+      }
+    }
     return this.data.projectCategories || [];
   }
 
-  public addProjectCategory(category: Omit<ProjectCategory, 'id'> & { id?: string }): ProjectCategory {
+  public async addProjectCategory(category: Omit<ProjectCategory, 'id'> & { id?: string }): Promise<ProjectCategory> {
+    await this.ensureConnected();
     const id = category.id || `cat-${Date.now()}`;
     const newCat = { id, ...category };
     if (!this.data.projectCategories) this.data.projectCategories = [];
     this.data.projectCategories.push(newCat);
     this.save();
-    this.syncMongoItem('projectCategories', { id }, newCat);
+    await this.syncMongoItem('projectCategories', { id }, newCat);
     return newCat;
   }
 
-  public updateProjectCategory(id: string, category: Partial<ProjectCategory>): ProjectCategory {
+  public async updateProjectCategory(id: string, category: Partial<ProjectCategory>): Promise<ProjectCategory> {
+    await this.ensureConnected();
     const index = this.data.projectCategories.findIndex(c => c.id === id);
     if (index === -1) throw new Error("Category not found");
     this.data.projectCategories[index] = { ...this.data.projectCategories[index], ...category };
     this.save();
-    this.syncMongoItem('projectCategories', { id }, this.data.projectCategories[index]);
+    await this.syncMongoItem('projectCategories', { id }, this.data.projectCategories[index]);
     return this.data.projectCategories[index];
   }
 
-  public deleteProjectCategory(id: string): void {
+  public async deleteProjectCategory(id: string): Promise<void> {
+    await this.ensureConnected();
     this.data.projectCategories = (this.data.projectCategories || []).filter(c => c.id !== id);
     this.save();
-    this.syncMongoItem('projectCategories', { id }, {}, true);
+    await this.syncMongoItem('projectCategories', { id }, {}, true);
   }
 }
 

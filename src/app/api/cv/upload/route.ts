@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
     const base64Data = buffer.toString('base64');
 
-    const updatedProfile = db.updateProfile({
+    const updatedProfile = await db.updateProfile({
       cvBase64: base64Data,
       cvFileName: file.name,
       cvFileType: file.type || 'application/pdf',

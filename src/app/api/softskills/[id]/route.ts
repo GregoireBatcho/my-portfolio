@@ -11,7 +11,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await req.json();
-    const updated = db.updateSoftSkill(id, body);
+    const updated = await db.updateSoftSkill(id, body);
     return NextResponse.json(updated);
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 400 });
@@ -24,7 +24,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
   }
   try {
     const { id } = await params;
-    db.deleteSoftSkill(id);
+    await db.deleteSoftSkill(id);
     return NextResponse.json({ success: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 400 });

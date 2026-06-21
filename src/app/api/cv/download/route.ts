@@ -1,9 +1,11 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { db } from '@/server/db';
 
 export async function GET() {
   try {
-    const profile = db.getProfile();
+    const profile = await db.getProfile();
 
     if (!profile.cvBase64) {
       // Fallback: If no base64 was uploaded but a manual URL is defined, redirect

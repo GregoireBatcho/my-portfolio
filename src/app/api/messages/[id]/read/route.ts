@@ -10,7 +10,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   }
   try {
     const { id } = await params;
-    const updated = db.markMessageAsRead(id);
+    const updated = await db.markMessageAsRead(id);
     return NextResponse.json(updated);
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 400 });

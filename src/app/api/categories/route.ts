@@ -1,10 +1,12 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { verifyRequest } from '../auth/helper';
 
 export async function GET() {
   try {
-    const list = db.getProjectCategories();
+    const list = await db.getProjectCategories();
     return NextResponse.json(list);
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Failed to retrieve categories' }, { status: 500 });
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'nameEn and nameFr are required' }, { status: 400 });
     }
     const slug = body.id || body.nameEn.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-    const newCat = db.addProjectCategory({
+    const newCat = await db.addProjectCategory({
       id: slug,
       nameEn: body.nameEn,
       nameFr: body.nameFr
@@ -41,7 +43,7 @@ export async function PUT(req: NextRequest) {
     if (!body.id) {
       return NextResponse.json({ error: 'Category ID is required' }, { status: 400 });
     }
-    const updated = db.updateProjectCategory(body.id, {
+    const updated = await db.updateProjectCategory(body.id, {
       nameEn: body.nameEn,
       nameFr: body.nameFr
     });
@@ -61,7 +63,7 @@ export async function DELETE(req: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: 'Category ID parameters is required' }, { status: 400 });
     }
-    db.deleteProjectCategory(id);
+    await db.deleteProjectCategory(id);
     return NextResponse.json({ success: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 400 });

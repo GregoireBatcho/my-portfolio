@@ -134,31 +134,6 @@
   ],
   "projects": [
     {
-      "id": "proj-nova",
-      "title": "Nova CRM & Analytics Suite",
-      "slug": "nova-crm-analytics-suite",
-      "shortDescription": "A luxurious B2B SaaS platform featuring beautiful dark glassmorphic widgets, interactive real-time telemetry, and automated invoice delivery.",
-      "fullDescription": "Nova is an enterprise-oriented customer relationship and server telemetry platform. Engineered utilizing a robust full-stack architecture, it addresses modern performance requirements with server-rendered layouts and fluid client transitions. Key challenges resolved included the synchronization of live metric charting with low bandwidth, solved by custom D3 layout pooling and virtual caching.",
-      "images": [
-        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&h=675&q=80",
-        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&h=675&q=80"
-      ],
-      "technologies": [
-        "React",
-        "Express",
-        "Node.js",
-        "MongoDB",
-        "Tailwind CSS",
-        "Recharts"
-      ],
-      "category": "saas",
-      "featured": true,
-      "githubUrl": "https://github.com/gregoire-batcho/nova-crm",
-      "liveUrl": "https://nova-crm.example.com",
-      "startDate": "2025-10-01",
-      "endDate": "2026-02-15"
-    },
-    {
       "id": "proj-titan",
       "title": "Titan Cloud API Security Gateway",
       "slug": "titan-cloud-api-gateway",
@@ -241,21 +216,6 @@
         "Tailwind CSS"
       ],
       "startDate": "2025-06-01"
-    },
-    {
-      "id": "exp-2",
-      "company": "Synapse Labs",
-      "role": "Full Stack Developer Intern",
-      "description": "Assisted in the design and prototyping of database schemas via Mongoose models. Crafted automated testing scripts running Mocha/Chai, raising code deployment reliability to 98.5%. Built localized landing layouts and verified cross-device accessibility benchmarks.",
-      "technologies": [
-        "JavaScript",
-        "Express",
-        "MongoDB",
-        "Git",
-        "Figma"
-      ],
-      "startDate": "2024-09-01",
-      "endDate": "2025-04-30"
     }
   ],
   "softSkills": [

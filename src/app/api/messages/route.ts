@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { verifyRequest } from '../auth/helper';
@@ -7,7 +9,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized: Admin authentication token required' }, { status: 401 });
   }
   try {
-    return NextResponse.json(db.getMessages());
+    const messages = await db.getMessages();
+    return NextResponse.json(messages);
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
@@ -20,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'All fields are strictly required.' }, { status: 400 });
     }
 
-    const savedMsg = db.addMessage({ name, email, subject, message });
+    const savedMsg = await db.addMessage({ name, email, subject, message });
 
     // Resend email notification (real or mock)
     const resendKey = process.env.RESEND_API_KEY;

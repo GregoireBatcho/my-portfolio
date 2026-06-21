@@ -4,7 +4,7 @@ import { db } from '@/server/db';
 export async function GET(req: NextRequest) {
   const host = req.nextUrl.origin;
   try {
-    const projects = db.getProjects();
+    const projects = await db.getProjects();
     const projectUrls = projects.map(p => `  <url>
     <loc>${host}/projects/${p.slug}</loc>
     <changefreq>monthly</changefreq>
