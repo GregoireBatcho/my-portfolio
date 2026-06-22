@@ -209,20 +209,20 @@
   "softSkills": [
     {
       "id": "soft-1",
-      "title": "Rigor & Precision",
-      "description": "Committed to robust type safety, comprehensive specification compliance, and neat pixel alignment across responsive viewports.",
+      "title": "Rigueur et Organisation",
+      "description": "Attentif aux détails et à la qualité du travail fourni. J'accorde une importance particulière à la fiabilité du code, au respect des bonnes pratiques et à la réalisation de projets bien structurés.",
       "icon": "Shield"
     },
     {
       "id": "soft-2",
-      "title": "Empathetic Communication",
-      "description": "Thrive inside collaborative tech partnerships. Skilled at matching highly complex engineering choices to human-friendly summaries.",
+      "title": "Communication et Esprit d'Équipe",
+      "description": "Capable de collaborer efficacement au sein d'une équipe, de partager mes idées clairement et de vulgariser des concepts techniques pour différents interlocuteurs.",
       "icon": "MessageSquareCode"
     },
     {
       "id": "soft-3",
-      "title": "Creative Problem Solving",
-      "description": "Equipped with a deep learning agility to isolate bottle-necks, model data schemes, and design lightweight standalone utilities.",
+      "title": "Résolution de Problèmes",
+      "description": "J'aime analyser les défis techniques, identifier leurs causes et concevoir des solutions adaptées, performantes et évolutives.",
       "icon": "Cpu"
     }
   ],
