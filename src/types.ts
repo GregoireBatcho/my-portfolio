@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'visitor';
+  role: "admin" | "visitor";
   avatar?: string;
 }
 
@@ -11,7 +11,7 @@ export interface Profile {
   title: string;
   biography: string;
   location: string;
-  availability: 'available' | 'busy' | 'rest';
+  availability: "available" | "busy" | "rest";
   profilePicture: string;
   cvUrl?: string;
   cvBase64?: string;
@@ -28,7 +28,7 @@ export interface Profile {
 export interface Technology {
   id: string;
   name: string;
-  category: 'frontend' | 'backend' | 'database' | 'mobile' | 'devops' | 'tools';
+  category: "frontend" | "backend" | "database" | "mobile" | "devops" | "tools";
   proficiency: number; // 0 to 100
   yearsExperience: number;
 }
@@ -78,7 +78,7 @@ export interface ContactMessage {
   email: string;
   subject: string;
   message: string;
-  status: 'unread' | 'read';
+  status: "unread" | "read";
   createdAt: string;
 }
 
@@ -156,8 +156,6 @@ export interface TranslationMessages {
     viewCode: string;
     viewLive: string;
     noProjects: string;
-    challenges: string;
-    solutions: string;
   };
   experience: {
     title: string;

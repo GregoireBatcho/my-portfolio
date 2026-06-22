@@ -271,23 +271,23 @@ const defaultData: DatabaseSchema = {
   softSkills: [
     {
       id: "soft-1",
-      title: "Rigor & Precision",
+      title: "Curiosité et Apprentissage Continu",
       description:
-        "Committed to robust type safety, comprehensive specification compliance, and neat pixel alignment across responsive viewports.",
+        "Toujours motivé à découvrir de nouvelles technologies, améliorer mes compétences et relever de nouveaux défis techniques.",
       icon: "Shield",
     },
     {
       id: "soft-2",
-      title: "Empathetic Communication",
+      title: "Collaboration et Communication",
       description:
-        "Thrive inside collaborative tech partnerships. Skilled at matching highly complex engineering choices to human-friendly summaries.",
+        "À l'aise dans le travail en équipe, avec une capacité à communiquer efficacement et à contribuer à un environnement de développement collaboratif.",
       icon: "MessageSquareCode",
     },
     {
       id: "soft-3",
-      title: "Creative Problem Solving",
+      title: "Analyse et Résolution de Problèmes",
       description:
-        "Equipped with a deep learning agility to isolate bottle-necks, model data schemes, and design lightweight standalone utilities.",
+        "Capable d'aborder les problèmes de manière méthodique afin de concevoir des solutions simples, efficaces et maintenables.",
       icon: "Cpu",
     },
   ],

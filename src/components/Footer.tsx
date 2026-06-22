@@ -96,17 +96,6 @@ export default function Footer({ setCurrentTab, profile }: FooterProps) {
           </a>
           <a
             href={
-              profile?.socials?.twitter || "https://twitter.com/gregoire_batcho"
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-9 h-9 rounded-lg border border-stone-200 dark:border-[#292524] bg-white dark:bg-neutral-900 flex items-center justify-center text-stone-600 dark:text-zinc-400 hover:text-[#d97736] hover:border-[#d97736]/30 transition-all cursor-pointer"
-            aria-label="Twitter Link"
-          >
-            <Twitter className="w-4 h-4" />
-          </a>
-          <a
-            href={
               profile?.socials?.email
                 ? `mailto:${profile.socials.email}`
                 : "mailto:batchogregoire0@gmail.com"
@@ -123,11 +112,6 @@ export default function Footer({ setCurrentTab, profile }: FooterProps) {
         <p>
           © {year} {profile?.fullname || "Grégoire BATCHO"}.{" "}
           {t("common.rights")}
-        </p>
-        <p className="flex items-center gap-1.5 justify-center">
-          {t("common.engineeredWith")}{" "}
-          <Heart className="w-3 h-3 text-[#d97736] fill-[#d97736]" /> using
-          Next.js & MongoDB Atlas.
         </p>
       </div>
     </footer>
